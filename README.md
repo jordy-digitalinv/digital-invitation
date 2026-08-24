@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Invitation
 
-## Getting Started
+Wedding invitation SaaS — buat, kelola, dan distribusikan undangan digital pernikahan dengan dashboard admin lengkap (guest list, RSVP, barcode check-in, seating, wishes, WhatsApp blast, dan lainnya).
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router) + React 19 + TypeScript
+- **Tailwind CSS v4**
+- **Prisma 6 + Supabase (PostgreSQL)** — 2 project terpisah: Development & Production
+- **next-auth v5** (credentials login)
+- **Supabase Storage** — foto tamu (disposable camera)
+- **Framer Motion 12**
+
+## Struktur Project
+
+```
+src/
+├── app/
+│   ├── admin/              # Dashboard (login required)
+│   │   ├── clients/        # Manajemen client + sub-halaman per client
+│   │   └── users/          # Manajemen user (SUPERADMIN only)
+│   ├── invite/[slug]/      # Undangan publik (?preview=1 untuk preview)
+│   ├── invite/g/[token]/   # Undangan personal per tamu
+│   ├── login/              # Halaman login
+│   └── api/                # Route handlers
+├── components/
+│   ├── invitation/
+│   │   ├── sections/       # Komponen shared antar tema (MusicPlayer, Barcode, dll)
+│   │   └── templates/      # Template undangan per tema
+│   └── cms/                # UI dashboard admin
+├── lib/                    # prisma, auth, supabase, utils
+├── modules/                # Service & schema layer (per domain)
+└── proxy.ts                # Subdomain rewrite + auth guard
+prisma/
+├── schema.prisma           # Data model
+└── seed.ts                 # Buat user SUPERADMIN pertama
+```
+
+## Setup dari Nol
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Buat 2 project Supabase (Development & Production)
+
+Buat **dua project terpisah** di [supabase.com](https://supabase.com) (region singkat: Singapore):
+
+| Project | Kegunaan |
+|---|---|
+| `digital-invitation-dev` | Development lokal |
+| `digital-invitation-prod` | Production di Vercel |
+
+Untuk tiap project, ambil kredensial:
+
+1. **Database**: Project Settings → Database → Connection string
+   - `DATABASE_URL` ← **Transaction pooler** (port 6543), tambahkan `?pgbouncer=true&connection_limit=1`
+   - `DATABASE_URL_UNPOOLED` ← **Direct connection** (port 5432)
+2. **Storage API**: Project Settings → API
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. **Storage bucket**: Storage → New bucket bernama `guest-photos` (private)
+
+### 3. Isi environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Lalu isi nilai **Supabase Development** ke `.env.local`. Generate secret:
+
+```bash
+openssl rand -base64 32
+```
+
+Variabel production **tidak** ditaruh di file — akan diset di Vercel Dashboard saat deploy.
+
+### 4. Push schema + seed admin
+
+```bash
+npm run db:setup
+```
+
+### 5. Jalankan development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Login Dashboard
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Buka `http://localhost:3000/login`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email | Password |
+|---|---|
+| `admin@digitalinvitation.my.id` | `admin123` |
 
-## Learn More
+> Ganti password default sebelum production lewat halaman `/admin/users`.
 
-To learn more about Next.js, take a look at the following resources:
+Role: **SUPERADMIN** (akses penuh), **ADMIN**, **STAFF** (hanya attendance client terkait).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Template Undangan
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Template terdaftar di `TemplateRenderer.tsx` + array `TEMPLATES` di `ThemeEditor.tsx`:
 
-## Deploy on Vercel
+| Slug | Nama | Status |
+|---|---|---|
+| `lucky-envelope` | Lucky Envelope — pembuka mesin jackpot + amplop mewah 3D | ✅ Aktif |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Menambah template baru: buat folder di `src/components/invitation/templates/<slug>/`, implementasikan, daftarkan di `TemplateRenderer.tsx` dan `ThemeEditor.tsx`. Detail aturan tema ada di `CLAUDE.md`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy ke Vercel (Production)
+
+1. Push repo ke GitHub (repo baru), lalu import di Vercel
+2. Set Environment Variables (scope: **Production**) — lihat bagian PRODUCTION di `.env.example`:
+   - `DATABASE_URL`, `DATABASE_URL_UNPOOLED` ← Supabase **Prod**
+   - `NEXTAUTH_SECRET`, `NEXTAUTH_URL=https://digital-invitation.my.id`
+   - `NEXT_PUBLIC_INVITATION_DOMAIN=digital-invitation.my.id`
+   - `NEXT_PUBLIC_APP_URL=https://digital-invitation.my.id`
+   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` ← Supabase **Prod**
+3. Jalankan migrasi ke DB prod sekali:
+   ```bash
+   DATABASE_URL="<prod pooled url>" DATABASE_URL_UNPOOLED="<prod direct url>" npm run db:setup
+   ```
+4. Tambahkan wildcard domain `*.digital-invitation.my.id` + apex domain di Vercel → Project Settings → Domains
+5. DNS registrar: A record apex ke Vercel + CNAME `*` ke `cname.vercel-dns.com`
+
+## Push ke GitHub Baru
+
+```bash
+git remote add origin git@github.com:<username>/<repo>.git
+git push -u origin main
+```
+
+## Scripts
+
+| Command | Fungsi |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` | Build production |
+| `npm run lint` | ESLint |
+| `npm run db:setup` | Push schema + seed admin |
+| `npm run db:migrate` | Migrasi dengan history |
+| `npm run db:studio` | Prisma Studio |
+
+Dokumentasi konvensi coding & aturan theme untuk AI ada di `CLAUDE.md`.

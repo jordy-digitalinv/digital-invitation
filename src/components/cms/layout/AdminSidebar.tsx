@@ -31,7 +31,7 @@ export function AdminSidebar({ role, onClose }: Props) {
           <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
             <Image src="/logo.png" alt="Logo" width={28} height={28} className="w-full h-full object-cover" />
           </div>
-          <span className="font-semibold text-sm" style={{ color: "#e2e8f0" }}>Mengundang</span>
+          <span className="font-semibold text-sm" style={{ color: "#e2e8f0" }}>Digital Invitation</span>
         </div>
         {onClose && (
           <button

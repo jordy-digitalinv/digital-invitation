@@ -16,7 +16,9 @@ const SUBDOMAIN: Record<string, string> = {
 
 function invitationUrl(clientType: string, slug: string) {
   const sub = SUBDOMAIN[clientType] ?? clientType.toLowerCase();
-  return `https://${sub}.jordyrea.my.id/${slug}`;
+  const domain =
+    process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
+  return `https://${sub}.${domain}/${slug}`;
 }
 
 const CLIENT_TYPE_LABELS: Record<string, { label: string; cls: string }> = {

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const existing = await prisma.user.findUnique({
-    where: { email: "admin@udangankami.com" },
+    where: { email: "admin@digitalinvitation.my.id" },
   });
 
   if (existing) {
@@ -17,7 +17,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "admin@udangankami.com",
+      email: "admin@digitalinvitation.my.id",
       password: hashed,
       name: "Super Admin",
       role: "SUPERADMIN",
@@ -25,7 +25,7 @@ async function main() {
   });
 
   console.log("Seed: Admin berhasil dibuat.");
-  console.log("Email: admin@udangankami.com");
+  console.log("Email: admin@digitalinvitation.my.id");
   console.log("Password: admin123");
 }
 

@@ -13,7 +13,8 @@ const SUBDOMAIN: Record<string, string> = {
 
 function getInvitationUrl(clientType: string, slug: string) {
   const sub = SUBDOMAIN[clientType] ?? clientType.toLowerCase();
-  const domain = process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "jordyrea.my.id";
+  const domain =
+    process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
   return `https://${sub}.${domain}/${slug}`;
 }
 

@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# Project: udangan-kami
+# Project: digital-invitation
 
-Wedding invitation SaaS built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, Prisma + PostgreSQL.
+Wedding invitation SaaS built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, Prisma + Supabase (PostgreSQL).
 
 ## Stack & Versions
 - Next.js 16.2.6 (App Router) — read `node_modules/next/dist/docs/` before any Next.js code
@@ -23,10 +23,10 @@ Wedding invitation SaaS built with Next.js 16 App Router, React 19, TypeScript, 
 - `prisma/schema.prisma` — source of truth for data model
 
 ## Template / Theme Rules
-- Each theme lives in `src/components/invitation/<slug>/`
+- Each theme lives in `src/components/invitation/templates/<slug>/`
 - `TemplateRenderer.tsx` routes to templates by `client.theme.templateSlug`
 - When adding a new theme: create the directory, implement the component, register in `TemplateRenderer` and the `ThemeEditor` TEMPLATES array
-- Available slugs: `dark`, `classic`, `sage`, `pearl`, `envelope`
+- Available slugs: `lucky-envelope` (only theme currently implemented)
 
 ## Coding Conventions
 - No comments unless the WHY is non-obvious
@@ -39,10 +39,16 @@ Wedding invitation SaaS built with Next.js 16 App Router, React 19, TypeScript, 
 
 ## Database
 - Always run `prisma db push` (dev) or `prisma migrate dev` (with migration history) — never edit the DB directly
-- Prisma Client is a singleton in `src/lib/prisma.ts` — never instantiate a new `PrismaClient` outside it
+- Prisma Client is a singleton in `src/lib/database/prisma.ts` — never instantiate a new `PrismaClient` outside it
+- Two Supabase projects: one for Development (local `.env.local`), one for Production (Vercel env vars) — never mix
 - `guest.maxPax` — max allowed attendees per invitation link
 - Gallery types: `HERO`, `COVER`, `BACKGROUND`, `GALLERY`, `PREWEDDING`
 - Event types: `AKAD`, `PEMBERKATAN`, `RESEPSI`, `AFTER_PARTY`, `SANGJIT`, `LAMARAN`
+
+## Environment / Deployment
+- Main invitation domain is env-driven: `NEXT_PUBLIC_INVITATION_DOMAIN` (prod: `digital-invitation.my.id`)
+- Never hardcode domains — always read from env with `"digital-invitation.my.id"` as fallback
+- Supabase Storage (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) backs guest photo uploads (bucket `guest-photos`)
 
 ## Key API Contracts
 - RSVP: `POST /api/rsvp` — `{ clientId, guestId, token, name, paxCount, status, message }`

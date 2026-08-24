@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth/auth";
 import { NextResponse } from "next/server";
 
-const MAIN_DOMAIN = "jordyrea.my.id";
+const MAIN_DOMAIN =
+  process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
 
 export default auth((req) => {
   const hostname = req.headers.get("host") || req.nextUrl.hostname;

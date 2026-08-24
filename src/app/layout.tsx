@@ -33,7 +33,7 @@ const lato = Lato({
 
 export const metadata: Metadata = {
   title: {
-    default: "Mengundang",
+    default: "Digital Invitation",
     template: "%s",
   },
   description: null,

@@ -3,9 +3,11 @@
 import { useState } from "react";
 
 const CLIENT_TYPE_OPTIONS = [
-  { value: "WEDDING",  label: "Pernikahan", cls: "bg-rose-50 text-rose-700" },
-  { value: "SANGJIT",  label: "Sangjit",    cls: "bg-purple-50 text-purple-700" },
-  { value: "LAMARAN",  label: "Lamaran",    cls: "bg-blue-50 text-blue-700" },
+  { value: "WEDDING",     label: "Pernikahan",  cls: "bg-rose-50 text-rose-700" },
+  { value: "SANGJIT",     label: "Sangjit",     cls: "bg-purple-50 text-purple-700" },
+  { value: "LAMARAN",     label: "Lamaran",     cls: "bg-blue-50 text-blue-700" },
+  { value: "ULANG_TAHUN", label: "Ulang Tahun", cls: "bg-amber-50 text-amber-700" },
+  { value: "KANTOR",      label: "Kantor",      cls: "bg-teal-50 text-teal-700" },
 ];
 
 interface Props {

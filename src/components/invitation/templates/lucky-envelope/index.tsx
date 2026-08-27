@@ -1064,7 +1064,7 @@ function WishesSection({
         <AnimInView variant="fadeUp" delay={0.1}>
           <div style={{ background: champagne, borderRadius: "22px", padding: "1.5rem", marginBottom: "1.5rem", border: `1px solid ${gold}1a`, boxShadow: `0 4px 20px rgba(51,40,32,0.05)` }}>
             {!guestName && (
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.yourName} style={{ ...inputBase, marginBottom: "0.75rem" }} />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} readOnly={!!guestName} placeholder={t.yourName} style={{ ...inputBase, marginBottom: "0.75rem" }} />
             )}
             <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} placeholder={t.wishPlaceholder} style={{ ...inputBase, resize: "none", marginBottom: "0.75rem", lineHeight: 1.65 }} />
             <motion.button whileHover={{ scale: 1.02, transition: { duration: 0.25 } }} whileTap={{ scale: 0.97 }} onClick={send} disabled={sending || !msg.trim()} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem", background: `linear-gradient(135deg, ${gold} 0%, #e8c98a 50%, ${gold} 100%)`, color: "#2a1c14", border: "none", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer", fontFamily: "'Cinzel', serif", opacity: sending || !msg.trim() ? 0.5 : 1, transition: "opacity 0.2s" }}>
@@ -1258,6 +1258,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
   const showCountdown = !!client.theme?.showCountdown;
   const showMap = client.theme?.showMap !== false;
   const barcodeVisibility = (client.theme as any)?.barcodeVisibility ?? "AFTER_RSVP";
+  const autoScrollEnabled = (client.theme as any)?.autoScroll ?? true;
   const countdownTarget = showCountdown
     ? (client.events.filter((e) => e.date).map((e) => new Date(e.date!)).filter((d) => d > new Date()).sort((a, b) => a.getTime() - b.getTime())[0] ?? null)
     : null;
@@ -1298,7 +1299,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
 
   // Auto-scroll past hero to content — fires automatically after cover opens
   useEffect(() => {
-    if (!coverGone || heroPassed) return;
+    if (!coverGone || heroPassed || !autoScrollEnabled) return;
     const timer = setTimeout(() => {
       const targetY = anchorRef.current?.offsetTop ?? 0;
       if (targetY < 50) return;
@@ -1320,7 +1321,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
 
   // After passing hero → block scrolling back up (cache minY once — reading offsetTop in handler causes layout thrashing)
   useEffect(() => {
-    if (!heroPassed) return;
+    if (!heroPassed || !autoScrollEnabled) return;
     const minY = anchorRef.current?.offsetTop ?? 0;
     function lockUpScroll() {
       if (window.scrollY < minY) window.scrollTo({ top: minY, behavior: "instant" as ScrollBehavior });
@@ -1331,7 +1332,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
 
   // Cinematic auto-scroll — accumulates float position to avoid sub-pixel rounding jank
   useEffect(() => {
-    if (!contentReached) return;
+    if (!contentReached || !autoScrollEnabled) return;
     const SPEED = 40; // px per second — adjust freely
     let animId: number;
     let lastTime = performance.now();

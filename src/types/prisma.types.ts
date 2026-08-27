@@ -30,6 +30,5 @@ export {
   RsvpStatus,
   SectionKey,
   UserRole,
-  InvitationCategory,
   AttendanceType,
 } from "@prisma/client";

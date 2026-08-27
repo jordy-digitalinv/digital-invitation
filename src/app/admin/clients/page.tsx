@@ -8,24 +8,19 @@ import { ClientTypeSelect } from "@/components/cms/client/ClientTypeSelect";
 import { DeleteClientButton } from "@/components/cms/client/DeleteClientButton";
 import { Users } from "lucide-react";
 
-const SUBDOMAIN: Record<string, string> = {
-  WEDDING: "wedding",
-  SANGJIT: "sangjit",
-  LAMARAN: "lamaran",
+const CLIENT_TYPE_LABELS: Record<string, { label: string; cls: string }> = {
+  WEDDING:      { label: "Pernikahan",  cls: "bg-rose-50 text-rose-700" },
+  SANGJIT:      { label: "Sangjit",     cls: "bg-purple-50 text-purple-700" },
+  LAMARAN:      { label: "Lamaran",     cls: "bg-blue-50 text-blue-700" },
+  ULANG_TAHUN:  { label: "Ulang Tahun", cls: "bg-amber-50 text-amber-700" },
+  KANTOR:       { label: "Kantor",      cls: "bg-teal-50 text-teal-700" },
 };
 
-function invitationUrl(clientType: string, slug: string) {
-  const sub = SUBDOMAIN[clientType] ?? clientType.toLowerCase();
+function invitationUrl(slug: string) {
   const domain =
     process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
-  return `https://${sub}.${domain}/${slug}`;
+  return `https://${slug}.${domain}`;
 }
-
-const CLIENT_TYPE_LABELS: Record<string, { label: string; cls: string }> = {
-  WEDDING:  { label: "Pernikahan", cls: "bg-rose-50 text-rose-700" },
-  SANGJIT:  { label: "Sangjit",    cls: "bg-purple-50 text-purple-700" },
-  LAMARAN:  { label: "Lamaran",    cls: "bg-blue-50 text-blue-700" },
-};
 
 export default async function ClientsPage() {
   const session = await auth();
@@ -85,6 +80,9 @@ export default async function ClientsPage() {
                               : "Profil belum diisi"}
                           </p>
                         )}
+                        <p className="text-stone-300 text-[10px] font-mono">
+                          {invitationUrl(client.slug).replace("https://", "")}
+                        </p>
                       </div>
                     </td>
                     <td className="px-4 py-3">

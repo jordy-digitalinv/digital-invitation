@@ -2,7 +2,7 @@ import { prisma } from "@/lib/database/prisma";
 import { Prisma } from "@prisma/client";
 import type { AttendanceType } from "@prisma/client";
 
-const SCAN_WINDOW_MS = 60 * 60 * 1000; // 1 jam
+const SCAN_OPEN_BEFORE_MS = 2 * 60 * 60 * 1000; // boleh scan mulai 2 jam sebelum acara — tanpa cut off
 const WIB_OFFSET_MINUTES = 7 * 60; // UTC+7
 
 function getEventStartUTC(date: Date | null, timeStart: string): Date | null {
@@ -136,16 +136,15 @@ export async function scanBarcode(clientId: string, barcode: string) {
     const eventStart = getEventStartUTC(event.date, event.timeStart);
     if (eventStart) {
       const now = new Date();
-      const windowStart = new Date(eventStart.getTime() - SCAN_WINDOW_MS);
-      const windowEnd = new Date(eventStart.getTime() + SCAN_WINDOW_MS);
+      const windowStart = new Date(eventStart.getTime() - SCAN_OPEN_BEFORE_MS);
 
-      if (now < windowStart || now > windowEnd) {
+      if (now < windowStart) {
         const label = barcodeType === "CHURCH" ? "Gereja" : "Resepsi";
         return {
           success: false,
           outsideWindow: true,
           barcodeType,
-          error: `Scan ${label} hanya tersedia ${formatWIBTime(windowStart)} – ${formatWIBTime(windowEnd)}`,
+          error: `Scan ${label} baru dibuka ${formatWIBTime(windowStart)} (2 jam sebelum acara)`,
         } as const;
       }
     }

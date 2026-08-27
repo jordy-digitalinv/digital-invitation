@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/database/prisma";
 import { generateGuestToken, generateInvitationUrl } from "@/lib/token";
 import { randomBytes } from "crypto";
-import type { CreateGuestInput, UpdateGuestInput, InvitationCategoryValue, GuestSideValue } from "./guests.schema";
+import type { CreateGuestInput, UpdateGuestInput, GuestSideValue } from "./guests.schema";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -12,11 +12,7 @@ function generateBarcode(): string {
 }
 
 function needsBarcodeReception(category: string): boolean {
-  return [
-    "GEREJA_RESEPSI",
-    "AKAD_RESEPSI",
-    "PEMBERKATAN_RESEPSI",
-  ].includes(category);
+  return category.includes("RESEPSI");
 }
 
 export async function getGuests(clientId: string) {
@@ -65,17 +61,23 @@ export const getGuestByToken = cache(async function getGuestByToken(token: strin
   const client = await getCachedClientInvitationData(guest.client.id);
   if (!client) return null;
 
-  return { ...guest, client };
+  // unstable_cache menyimpan JSON — Date kembali sebagai string.
+  // Ubah kembali ke Date supaya hook countdown/template bisa memakai .getTime().
+  const events = client.events.map((e) => ({
+    ...e,
+    date: e.date ? new Date(e.date) : null,
+  }));
+
+  return { ...guest, client: { ...client, events } };
 });
 
 export async function createGuest(
   clientId: string,
   data: CreateGuestInput,
-  clientSlug: string,
-  clientType?: string
+  clientSlug: string
 ) {
   const token = generateGuestToken(data.name);
-  const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token, clientType);
+  const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token);
   const barcodeChurch = generateBarcode();
   const barcodeReception = needsBarcodeReception(data.invitationCategory) ? generateBarcode() : null;
 
@@ -97,14 +99,21 @@ export async function createGuest(
 
 export async function importGuests(
   clientId: string,
-  guests: Array<{ name: string; phone?: string; invitationCategory?: InvitationCategoryValue; side?: GuestSideValue | null; maxPax?: number }>,
-  clientSlug: string,
-  clientType?: string
+  guests: Array<{ name: string; phone?: string; invitationCategory?: string; side?: GuestSideValue | null; maxPax?: number }>,
+  clientSlug: string
 ) {
+  // Fallback kategori untuk baris tanpa kategori: event pertama client.
+  const firstEvent = await prisma.event.findFirst({
+    where: { clientId },
+    orderBy: [{ sortOrder: "asc" }, { date: "asc" }],
+    select: { type: true },
+  });
+  const fallbackCategory = firstEvent?.type ?? "";
+
   const rows = guests.map((g) => {
     const token = generateGuestToken(g.name);
-    const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token, clientType);
-    const category = g.invitationCategory ?? "AKAD_RESEPSI";
+    const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token);
+    const category = g.invitationCategory ?? fallbackCategory;
     return {
       clientId,
       name: g.name,
@@ -130,10 +139,10 @@ export async function deleteGuest(id: string) {
   return prisma.guest.delete({ where: { id } });
 }
 
-export async function regenerateGuestToken(id: string, clientSlug: string, clientType?: string) {
+export async function regenerateGuestToken(id: string, clientSlug: string) {
   const existing = await prisma.guest.findUnique({ where: { id }, select: { name: true } });
   const token = generateGuestToken(existing?.name);
-  const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token, clientType);
+  const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token);
   return prisma.guest.update({
     where: { id },
     data: { guestToken: token, invitationUrl, isOpened: false, openedAt: null },

@@ -1,6 +1,7 @@
 import { getClientBySlug } from "@/modules/clients/clients.service";
 import { notFound } from "next/navigation";
 import { TemplateRenderer } from "@/components/invitation/TemplateRenderer";
+import { ClientErrorLogger, InvitationErrorBoundary } from "@/components/invitation/debug/ClientErrorLogger";
 import { getSession } from "@/lib/auth/permissions";
 import type { Metadata } from "next";
 
@@ -27,7 +28,7 @@ export default async function PublicInvitationPage({ params, searchParams }: Pro
     }
   }
 
-  return <TemplateRenderer guest={null} client={client as any} token={null} />;
+  return (<ClientErrorLogger><InvitationErrorBoundary><TemplateRenderer guest={null} client={client as any} token={null} /></InvitationErrorBoundary></ClientErrorLogger>);
 }
 
 function getEventLabel(clientType: string): string {

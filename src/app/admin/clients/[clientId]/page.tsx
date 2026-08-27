@@ -5,17 +5,10 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { ClientStatusToggle } from "@/components/cms/client/ClientStatusToggle";
 
-const SUBDOMAIN: Record<string, string> = {
-  WEDDING: "wedding",
-  SANGJIT: "sangjit",
-  LAMARAN: "lamaran",
-};
-
-function getInvitationUrl(clientType: string, slug: string) {
-  const sub = SUBDOMAIN[clientType] ?? clientType.toLowerCase();
+function getInvitationUrl(slug: string) {
   const domain =
     process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
-  return `https://${sub}.${domain}/${slug}`;
+  return `https://${slug}.${domain}`;
 }
 
 interface Props {
@@ -106,6 +99,17 @@ export default async function ClientOverviewPage({ params }: Props) {
               <div className="border-t border-stone-100 pt-3 space-y-2">
                 <Row label="Dibuat" value={formatDate(client.createdAt)} />
                 <Row label="Diperbarui" value={formatDate(client.updatedAt)} />
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-stone-500 shrink-0">Link Undangan</span>
+                  <a
+                    href={getInvitationUrl(client.slug)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-blue-600 hover:underline truncate"
+                  >
+                    {client.slug}.{process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id"}
+                  </a>
+                </div>
               </div>
             </div>
           </div>

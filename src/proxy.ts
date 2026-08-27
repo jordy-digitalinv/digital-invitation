@@ -10,14 +10,27 @@ export default auth((req) => {
     hostname !== MAIN_DOMAIN && hostname.endsWith(`.${MAIN_DOMAIN}`);
 
   if (isSubdomain) {
-    const path = req.nextUrl.pathname.slice(1);
-    if (path && !path.startsWith("_next") && !path.startsWith("api")) {
-      const url = req.nextUrl.clone();
-      const segments = path.split("/");
-      // Guest tokens always contain "_" (name-slug_random); bare client slugs never do.
-      const isGuestToken = segments.length === 1 && segments[0].includes("_");
-      url.pathname = isGuestToken ? `/invite/g/${segments[0]}` : `/invite/${path}`;
-      return NextResponse.rewrite(url);
+    // Slug client kini menjadi subdomain: jordy-rea.domain.com -> /invite/jordy-rea
+    const slug = hostname.slice(0, hostname.length - MAIN_DOMAIN.length - 1);
+    const path = req.nextUrl.pathname;
+
+    if (slug && !slug.includes(".")) {
+      const segments = path.split("/").filter(Boolean);
+      const isStaticOrApi =
+        path.startsWith("/api") ||
+        path.startsWith("/_next") ||
+        path.startsWith("/print");
+
+      if (!isStaticOrApi && segments.length <= 1) {
+        const url = req.nextUrl.clone();
+        if (segments.length === 0) {
+          url.pathname = `/invite/${slug}`;
+        } else {
+          // Guest tokens always contain "_" (name-slug_random).
+          url.pathname = `/invite/g/${segments[0]}`;
+        }
+        return NextResponse.rewrite(url);
+      }
     }
   }
 

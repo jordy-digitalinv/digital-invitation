@@ -4,12 +4,16 @@ import { apiError, apiSuccess } from "@/lib/utils";
 import { z } from "zod";
 
 const giftSchema = z.object({
+  kind: z.enum(["BANK", "EWALLET", "QRIS", "ADDRESS"]).default("BANK"),
   bankName: z.string().optional(),
   accountNumber: z.string().optional(),
   accountName: z.string().optional(),
   ewalletType: z.string().optional(),
   ewalletNumber: z.string().optional(),
   qrisImage: z.string().optional(),
+  receiverName: z.string().optional(),
+  receiverPhone: z.string().optional(),
+  address: z.string().optional(),
 });
 
 interface Params {

@@ -108,23 +108,23 @@ export function ProfileForm({ clientId, initialData }: Props) {
         <h3 className="font-medium text-stone-700 text-sm">Mempelai Pria</h3>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Nama Lengkap" error={errors.groomName?.message}>
-            <input {...register("groomName")} placeholder="Ahmad Budi Santoso" className={inputClass} />
+            <input {...register("groomName")} placeholder="Dieudonne Jordy" className={inputClass} />
           </Field>
           <Field label="Nama Panggilan" error={errors.groomNickname?.message}>
-            <input {...register("groomNickname")} placeholder="Budi" className={inputClass} />
+            <input {...register("groomNickname")} placeholder="Jordy" className={inputClass} />
           </Field>
         </div>
         <Field label="Nama Orang Tua (ID)" error={errors.groomParents?.message}>
           <input
             {...register("groomParents")}
-            placeholder="Putra dari Bpk. Santoso & Ibu Sari"
+            placeholder="Putra dari Bpk. ... & Ibu ..."
             className={inputClass}
           />
         </Field>
         <Field label="Nama Orang Tua (EN)" error={undefined}>
           <input
             {...register("groomParentsEn")}
-            placeholder="Son of Mr. Santoso & Mrs. Sari"
+            placeholder="Son of Mr. ... & Mrs. ..."
             className={inputClass}
           />
           <p className="text-xs text-stone-400 mt-1">Kosongkan untuk memakai versi Indonesia</p>
@@ -146,23 +146,23 @@ export function ProfileForm({ clientId, initialData }: Props) {
         <h3 className="font-medium text-stone-700 text-sm">Mempelai Wanita</h3>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Nama Lengkap" error={errors.brideName?.message}>
-            <input {...register("brideName")} placeholder="Ayu Putri Lestari" className={inputClass} />
+            <input {...register("brideName")} placeholder="Rea Yulistria" className={inputClass} />
           </Field>
           <Field label="Nama Panggilan" error={errors.brideNickname?.message}>
-            <input {...register("brideNickname")} placeholder="Ayu" className={inputClass} />
+            <input {...register("brideNickname")} placeholder="Rea" className={inputClass} />
           </Field>
         </div>
         <Field label="Nama Orang Tua (ID)" error={errors.brideParents?.message}>
           <input
             {...register("brideParents")}
-            placeholder="Putri dari Bpk. Lestari & Ibu Dewi"
+            placeholder="Putri dari Bpk. ... & Ibu ..."
             className={inputClass}
           />
         </Field>
         <Field label="Nama Orang Tua (EN)" error={undefined}>
           <input
             {...register("brideParentsEn")}
-            placeholder="Daughter of Mr. Lestari & Mrs. Dewi"
+            placeholder="Daughter of Mr. ... & Mrs. ..."
             className={inputClass}
           />
           <p className="text-xs text-stone-400 mt-1">Kosongkan untuk memakai versi Indonesia</p>

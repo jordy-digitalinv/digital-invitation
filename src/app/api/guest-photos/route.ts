@@ -59,11 +59,17 @@ export async function POST(req: Request) {
         clientId: true,
         rsvp: { select: { status: true } },
         attendances: { select: { id: true }, take: 1 },
+        client: { select: { theme: { select: { barcodeVisibility: true, disposableCameraEnabled: true } } } },
       },
     });
     if (!guest || !guest.isActive) return apiError("Tamu tidak ditemukan", 404);
     if (guest.clientId !== clientId) return apiError("Akses ditolak", 403);
-    if (guest.rsvp?.status !== "HADIR") {
+    if (guest.client.theme?.disposableCameraEnabled === false) {
+      return apiError("Fitur kamera tamu tidak diaktifkan untuk acara ini", 403);
+    }
+
+    const requiresRsvp = (guest.client.theme?.barcodeVisibility ?? "AFTER_RSVP") === "AFTER_RSVP";
+    if (requiresRsvp && guest.rsvp?.status !== "HADIR") {
       return apiError("Kamu perlu konfirmasi kehadiran (RSVP) terlebih dahulu", 403);
     }
     if (guest.attendances.length === 0) {

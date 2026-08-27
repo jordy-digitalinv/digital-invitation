@@ -114,9 +114,11 @@ interface Props {
   rsvpStatus: string | null;
   hasCheckedIn: boolean;
   eventDates: string[]; // ISO strings
+  barcodeVisibility?: string | null; // "AFTER_RSVP" | "ALWAYS" | "HIDDEN"
+  enabled?: boolean | null;
 }
 
-export function DisposableCamera({ token, clientId, guestName, rsvpStatus, hasCheckedIn, eventDates }: Props) {
+export function DisposableCamera({ token, clientId, guestName, rsvpStatus, hasCheckedIn, eventDates, barcodeVisibility, enabled }: Props) {
   const [lang] = useGuestLanguage("en");
   const t = TR[lang];
   const [open, setOpen] = useState(false);
@@ -145,8 +147,13 @@ export function DisposableCamera({ token, clientId, guestName, rsvpStatus, hasCh
   const isAfterWindow = windowEnd ? now > windowEnd : false;
   const canUpload = !isBeforeWindow && !isAfterWindow && hasCheckedIn;
 
+  // Barcode ticket "AFTER_RSVP" mode requires RSVP HADIR before the camera unlocks;
+  // "ALWAYS"/"HIDDEN" don't gate the ticket on RSVP, so the camera shouldn't either.
+  const requiresRsvp = (barcodeVisibility ?? "AFTER_RSVP") === "AFTER_RSVP";
+  const rsvpBlocked = requiresRsvp && rsvpStatus !== "HADIR";
+
   const loadPhotos = useCallback(async () => {
-    if (rsvpStatus !== "HADIR") return;
+    if (rsvpBlocked || enabled === false) return;
     try {
       const res = await fetch(`/api/guest-photos?token=${token}`);
       const data = await res.json();
@@ -156,12 +163,13 @@ export function DisposableCamera({ token, clientId, guestName, rsvpStatus, hasCh
     } finally {
       setLoaded(true);
     }
-  }, [token, rsvpStatus]);
+  }, [token, rsvpBlocked, enabled]);
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
 
-  // Gate: only show if RSVP'd as attending and within or before the window
-  if (rsvpStatus !== "HADIR") return null;
+  // Gate: feature must be enabled for this client, RSVP requirement (if any) satisfied, and within or before the window
+  if (enabled === false) return null;
+  if (rsvpBlocked) return null;
   if (isAfterWindow) return null;
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {

@@ -20,7 +20,7 @@ export async function POST(_req: Request, { params }: Params) {
     });
     if (!client) return apiError("Client tidak ditemukan", 404);
 
-    const guest = await regenerateGuestToken(guestId, client.slug, client.clientType);
+    const guest = await regenerateGuestToken(guestId, client.slug);
     return apiSuccess(guest);
   } catch {
     return apiError("Terjadi kesalahan server", 500);

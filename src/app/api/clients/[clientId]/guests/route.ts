@@ -50,7 +50,7 @@ export async function POST(req: Request, { params }: Params) {
     if (Array.isArray(body)) {
       const parsed = importGuestsSchema.safeParse(body);
       if (!parsed.success) return apiError(parsed.error.issues[0]?.message || "Validasi gagal");
-      const result = await importGuests(clientId, parsed.data as any, client.slug, client.clientType);
+      const result = await importGuests(clientId, parsed.data as any, client.slug);
       return apiSuccess({ count: result.count }, 201);
     }
 
@@ -58,7 +58,7 @@ export async function POST(req: Request, { params }: Params) {
     const parsed = createGuestSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.issues[0]?.message || "Validasi gagal");
 
-    const guest = await createGuest(clientId, parsed.data, client.slug, client.clientType);
+    const guest = await createGuest(clientId, parsed.data, client.slug);
     return apiSuccess(guest, 201);
   } catch {
     return apiError("Terjadi kesalahan server", 500);
@@ -84,7 +84,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { slug: true, clientType: true },
+      select: { slug: true },
     });
     if (!client) return apiError("Client tidak ditemukan", 404);
 
@@ -93,7 +93,7 @@ export async function PATCH(req: Request, { params }: Params) {
         prisma.guest.update({
           where: { id: guest.id },
           data: {
-            invitationUrl: generateInvitationUrl(appUrl ?? "", client.slug, guest.guestToken, client.clientType),
+            invitationUrl: generateInvitationUrl(appUrl ?? "", client.slug, guest.guestToken),
           },
         })
       )

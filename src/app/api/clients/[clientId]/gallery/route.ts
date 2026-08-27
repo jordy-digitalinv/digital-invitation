@@ -9,6 +9,14 @@ const gallerySchema = z.object({
   sortOrder: z.number().int().default(0),
 });
 
+// URL halaman GitHub (…/blob/…) bukan file gambar — konversi ke raw agar bisa ditampilkan.
+function normalizeImageUrl(url: string): string {
+  return url.replace(
+    /^(https?:\/\/)github\.com\/([^/]+)\/([^/]+)\/blob\//,
+    "$1raw.githubusercontent.com/$2/$3/"
+  );
+}
+
 interface Params {
   params: Promise<{ clientId: string }>;
 }
@@ -43,7 +51,7 @@ export async function POST(req: Request, { params }: Params) {
 
     const count = await prisma.gallery.count({ where: { clientId } });
     const gallery = await prisma.gallery.create({
-      data: { clientId, ...parsed.data, sortOrder: count },
+      data: { clientId, ...parsed.data, url: normalizeImageUrl(parsed.data.url), sortOrder: count },
     });
     return apiSuccess(gallery, 201);
   } catch {

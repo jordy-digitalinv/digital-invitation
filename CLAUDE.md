@@ -25,8 +25,10 @@ Wedding invitation SaaS built with Next.js 16 App Router, React 19, TypeScript, 
 ## Template / Theme Rules
 - Each theme lives in `src/components/invitation/templates/<slug>/`
 - `TemplateRenderer.tsx` routes to templates by `client.theme.templateSlug`
-- When adding a new theme: create the directory, implement the component, register in `TemplateRenderer` and the `ThemeEditor` TEMPLATES array
-- Available slugs: `lucky-envelope` (only theme currently implemented)
+- When adding a new theme: create the directory, implement the component, register in `TemplateRenderer`, the `ThemeEditor` TEMPLATES array, and `TEMPLATE_SLUGS` in the theme API route
+- Available slugs: `classic-elegant` (default), `modern-minimal`, `floral-blush`; `lucky-envelope` is legacy (unregistered from catalog but still renders for old data)
+- Guest invitation categories are derived dynamically from the client's events — see `src/lib/categories.ts` (`getInvitationCategories`). Combo values use `+` separator (e.g. `PEMBERKATAN+RESEPSI`)
+- Client slug doubles as invitation subdomain: `<slug>.digital-invitation.my.id`
 
 ## Coding Conventions
 - No comments unless the WHY is non-obvious

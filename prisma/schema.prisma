@@ -41,7 +41,7 @@ model Client {
   id               String            @id @default(cuid())
   name             String
   slug             String            @unique
-  status           ClientStatus      @default(DRAFT)
+  status           ClientStatus      @default(ACTIVE)
   clientType       ClientType        @default(WEDDING)
   customDomain     String?           @unique
   createdById      String
@@ -152,7 +152,7 @@ model Gallery {
 model Theme {
   id             String   @id @default(cuid())
   clientId       String   @unique
-  templateSlug   String   @default("lucky-envelope")
+  templateSlug   String   @default("classic-elegant")
   primaryColor   String   @default("#b8860b")
   secondaryColor String   @default("#f5f0e8")
   bgColor        String   @default("#fffdf7")
@@ -162,9 +162,11 @@ model Theme {
   customCss      String?
   showCountdown      Boolean  @default(false)
   barcodeVisibility  String   @default("AFTER_RSVP")
+  autoScroll         Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   showMap            Boolean  @default(true)
+  disposableCameraEnabled Boolean @default(true)
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("themes")
@@ -200,7 +202,7 @@ model Guest {
   name               String
   phone              String?
   email              String?
-  invitationCategory InvitationCategory @default(GEREJA_RESEPSI)
+  invitationCategory String             @default("")
   side               GuestSide?
   barcodeChurch      String?            @unique
   barcodeReception   String?            @unique
@@ -289,12 +291,16 @@ model Wish {
 model Gift {
   id            String   @id @default(cuid())
   clientId      String
+  kind          String   @default("BANK")
   bankName      String?
   accountNumber String?
   accountName   String?
   ewalletType   String?
   ewalletNumber String?
   qrisImage     String?
+  receiverName  String?
+  receiverPhone String?
+  address       String?
   isActive      Boolean  @default(true)
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
@@ -387,6 +393,8 @@ enum ClientType {
   WEDDING
   SANGJIT
   LAMARAN
+  ULANG_TAHUN
+  KANTOR
 }
 
 enum EventType {
@@ -420,18 +428,6 @@ enum RsvpStatus {
   PENDING
   HADIR
   TIDAK_HADIR
-}
-
-enum InvitationCategory {
-  GEREJA_SAJA
-  GEREJA_RESEPSI
-  AKAD
-  AKAD_RESEPSI
-  PEMBERKATAN
-  PEMBERKATAN_RESEPSI
-  PEMBERKATAN_NASI_BOX
-  SANGJIT
-  LAMARAN
 }
 
 enum AttendanceType {

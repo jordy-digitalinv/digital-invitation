@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Trash2, Plus, Eye, EyeOff, CreditCard, Wallet, QrCode, Upload, X } from "lucide-react";
+import { Trash2, Plus, Eye, EyeOff, CreditCard, Wallet, QrCode, Upload, X, Gift as GiftIcon, MapPin } from "lucide-react";
 
-type GiftMode = "bank" | "ewallet" | "qris";
+type GiftMode = "bank" | "ewallet" | "qris" | "address";
 
 interface Gift {
   id: string;
+  kind: string;
+  receiverName: string | null;
+  receiverPhone: string | null;
+  address: string | null;
   bankName: string | null;
   accountNumber: string | null;
   accountName: string | null;
@@ -38,6 +42,9 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
     ewalletType: "GoPay",
     ewalletNumber: "",
     qrisLabel: "",
+    receiverName: "",
+    receiverPhone: "",
+    address: "",
   });
   const [qrisImageUrl, setQrisImageUrl] = useState<string | null>(null);
   const [qrisPreview, setQrisPreview] = useState<string | null>(null);
@@ -83,14 +90,28 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
 
       if (mode === "bank") {
         payload = {
+          kind: "BANK",
           bankName: form.bankName,
           accountNumber: form.accountNumber,
           accountName: form.accountName,
         };
       } else if (mode === "ewallet") {
         payload = {
+          kind: "EWALLET",
           ewalletType: form.ewalletType,
           ewalletNumber: form.ewalletNumber,
+        };
+      } else if (mode === "address") {
+        if (!form.address.trim()) {
+          setError("Alamat pengiriman wajib diisi");
+          setSaving(false);
+          return;
+        }
+        payload = {
+          kind: "ADDRESS",
+          receiverName: form.receiverName,
+          receiverPhone: form.receiverPhone,
+          address: form.address,
         };
       } else {
         if (!qrisImageUrl) {
@@ -99,6 +120,7 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
           return;
         }
         payload = {
+          kind: "QRIS",
           ewalletType: form.qrisLabel || "QRIS",
           qrisImage: qrisImageUrl,
         };
@@ -115,7 +137,7 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
         return;
       }
       setGifts((prev) => [...prev, data]);
-      setForm({ bankName: "", accountNumber: "", accountName: "", ewalletType: "GoPay", ewalletNumber: "", qrisLabel: "" });
+      setForm({ bankName: "", accountNumber: "", accountName: "", ewalletType: "GoPay", ewalletNumber: "", qrisLabel: "", receiverName: "", receiverPhone: "", address: "" });
       setQrisImageUrl(null);
       setQrisPreview(null);
     } finally {
@@ -146,6 +168,7 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
 
   const isBank = (g: Gift) => !!g.bankName && !g.qrisImage;
   const isQris = (g: Gift) => !!g.qrisImage;
+  const isAddress = (g: Gift) => g.kind === "ADDRESS";
 
   return (
     <div className="space-y-6">
@@ -176,6 +199,14 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
             }`}
           >
             <QrCode size={14} /> QRIS
+          </button>
+          <button
+            onClick={() => setMode("address")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              mode === "address" ? "bg-blue-600 text-white" : "border border-stone-200 text-stone-600 hover:bg-stone-50"
+            }`}
+          >
+            <GiftIcon size={14} /> Kirim Kado
           </button>
         </div>
 
@@ -291,6 +322,41 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
           </div>
         )}
 
+        {mode === "address" && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>Nama Penerima</label>
+              <input
+                type="text"
+                placeholder="Nama penerima kado"
+                value={form.receiverName}
+                onChange={(e) => updateForm("receiverName", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>No. Telepon (opsional)</label>
+              <input
+                type="text"
+                placeholder="08xxxxxxxxxx"
+                value={form.receiverPhone}
+                onChange={(e) => updateForm("receiverPhone", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>Alamat Lengkap</label>
+              <textarea
+                rows={3}
+                placeholder="Jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota, kode pos"
+                value={form.address}
+                onChange={(e) => updateForm("address", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+        )}
+
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
 
         <button
@@ -320,8 +386,10 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
           <div className="divide-y divide-stone-100">
             {gifts.map((gift) => (
               <div key={gift.id} className="flex items-center gap-4 px-6 py-4">
-                <div className={`p-2 rounded-lg ${isQris(gift) ? "bg-purple-50" : isBank(gift) ? "bg-blue-50" : "bg-green-50"}`}>
-                  {isQris(gift) ? (
+                <div className={`p-2 rounded-lg ${isAddress(gift) ? "bg-amber-50" : isQris(gift) ? "bg-purple-50" : isBank(gift) ? "bg-blue-50" : "bg-green-50"}`}>
+                  {isAddress(gift) ? (
+                    <GiftIcon size={16} className="text-amber-500" />
+                  ) : isQris(gift) ? (
                     <QrCode size={16} className="text-purple-500" />
                   ) : isBank(gift) ? (
                     <CreditCard size={16} className="text-blue-500" />
@@ -330,7 +398,15 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  {isBank(gift) ? (
+                  {isAddress(gift) ? (
+                    <>
+                      <p className="text-sm font-medium text-stone-800 flex items-center gap-1.5">
+                        <MapPin size={12} className="text-amber-500" /> Alamat Kirim Kado
+                      </p>
+                      <p className="text-xs text-stone-600">{gift.receiverName}{gift.receiverPhone ? ` · ${gift.receiverPhone}` : ""}</p>
+                      <p className="text-xs text-stone-400 line-clamp-2">{gift.address}</p>
+                    </>
+                  ) : isBank(gift) ? (
                     <>
                       <p className="text-sm font-medium text-stone-800">{gift.bankName}</p>
                       <p className="text-xs text-stone-500 font-mono">{gift.accountNumber}</p>

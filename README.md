@@ -105,11 +105,35 @@ Role: **SUPERADMIN** (akses penuh), **ADMIN**, **STAFF** (hanya attendance clien
 
 Template terdaftar di `TemplateRenderer.tsx` + array `TEMPLATES` di `ThemeEditor.tsx`:
 
-| Slug | Nama | Status |
+| Slug | Nama | Gaya |
 |---|---|---|
-| `lucky-envelope` | Lucky Envelope — pembuka mesin jackpot + amplop mewah 3D | ✅ Aktif |
+| `classic-elegant` | Classic Elegant | Klasik abadi, serif emas *(default)* |
+| `modern-minimal` | Modern Minimal | Bersih modern, whitespace lega |
+| `floral-blush` | Floral Blush | Romantis lembut, script manis |
+| `luxe-darkgold` | Luxe Dark Gold | Mewah dramatis, hitam-emas |
+| `sage-botanical` | Sage Botanical | Hijau alami botanikal |
+| `rustic-terracotta` | Rustic Terracotta | Hangat kraft countryside |
+| `jawa-ageng` | Jawa Ageng | Tradisional Jawa, batik indigo-emas |
+| `ambon-manise` | Ambon Manise | Laut Banda, ombak & cengkeh khas Maluku |
+| `islami-emerald` | Islami Emerald | Hijau zamrud islami, lengkung kubah |
+| `sangjit-merah` | Sangjit Merah | Merah-emas Tionghoa, 囍 lampion |
+| `minang-gadang` | Minang Gadang | Minangkabau, songket merah-emas |
+| `batak-ulos` | Batak Ulos | Tenunan ulos Batak, Horas! |
+| `hanoi-modern` | Hanoi Modern | Editorial modern, tipografi majalah |
 
-Menambah template baru: buat folder di `src/components/invitation/templates/<slug>/`, implementasikan, daftarkan di `TemplateRenderer.tsx` dan `ThemeEditor.tsx`. Detail aturan tema ada di `CLAUDE.md`.
+Fitur **Auto Scroll** (toggle di tab Tema): halaman bergulir perlahan otomatis setelah undangan dibuka; berhenti saat tamu menggulir sendiri. Berlaku untuk semua tema.
+
+Menambah template baru: buat folder di `src/components/invitation/templates/<slug>/`, implementasikan komponen default export, daftarkan di `TemplateRenderer.tsx`, `ThemeEditor.tsx`, dan enum `TEMPLATE_SLUGS` di route API theme. Detail aturan tema ada di `CLAUDE.md`.
+
+## Link Undangan
+
+Slug client dipakai sebagai **subdomain**: client "Jordy & Rea" (slug `jordy-rea`) →
+`https://jordy-rea.digital-invitation.my.id`
+
+Link personal tamu: `https://jordy-rea.domain.com/<guest-token>`.
+
+Untuk tes subdomain di lokal, `.env.local` memakai `NEXT_PUBLIC_INVITATION_DOMAIN=lvh.me:3000`
+(`*.lvh.me` otomatis resolve ke 127.0.0.1).
 
 ## Deploy ke Vercel (Production)
 

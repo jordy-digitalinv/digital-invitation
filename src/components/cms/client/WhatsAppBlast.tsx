@@ -9,7 +9,7 @@ import {
   DEFAULT_TEMPLATE_EN,
 } from "@/lib/whatsapp";
 import { formatDate } from "@/lib/utils";
-import { GUEST_CATEGORY_SORT_ORDER } from "@/modules/guests/guests.schema";
+import { invitationCategoryLabel, invitationCategoryColor } from "@/lib/categories";
 
 type SendStatus = "UNSENT" | "SENT";
 type RsvpStatus = "PENDING" | "HADIR" | "TIDAK_HADIR";
@@ -67,30 +67,6 @@ const SIDE_LABEL: Record<SideFilter, string> = {
   BRIDE: "Pihak Wanita",
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  GEREJA_SAJA: "Gereja Saja",
-  GEREJA_RESEPSI: "Gereja + Resepsi",
-  AKAD: "Akad",
-  AKAD_RESEPSI: "Akad & Resepsi",
-  PEMBERKATAN: "Pemberkatan",
-  PEMBERKATAN_RESEPSI: "Pemberkatan & Resepsi",
-  PEMBERKATAN_NASI_BOX: "Pemberkatan & Nasi Box",
-  SANGJIT: "Sangjit",
-  LAMARAN: "Lamaran",
-};
-
-const CATEGORY_COLOR: Record<string, string> = {
-  GEREJA_SAJA: "bg-blue-50 text-blue-700",
-  GEREJA_RESEPSI: "bg-purple-50 text-purple-700",
-  AKAD: "bg-blue-50 text-blue-700",
-  AKAD_RESEPSI: "bg-purple-50 text-purple-700",
-  PEMBERKATAN: "bg-blue-50 text-blue-700",
-  PEMBERKATAN_RESEPSI: "bg-purple-50 text-purple-700",
-  PEMBERKATAN_NASI_BOX: "bg-amber-50 text-amber-700",
-  SANGJIT: "bg-orange-50 text-orange-700",
-  LAMARAN: "bg-pink-50 text-pink-700",
-};
-
 export function WhatsAppBlast({
   clientId,
   clientName,
@@ -125,9 +101,7 @@ export function WhatsAppBlast({
     .filter((g) => sideFilter === "ALL" || g.side === sideFilter)
     .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      const categoryDiff =
-        GUEST_CATEGORY_SORT_ORDER.indexOf(a.invitationCategory as any) -
-        GUEST_CATEGORY_SORT_ORDER.indexOf(b.invitationCategory as any);
+      const categoryDiff = a.invitationCategory.localeCompare(b.invitationCategory);
       if (categoryDiff !== 0) return categoryDiff;
       return a.name.localeCompare(b.name, "id");
     });
@@ -425,10 +399,10 @@ export function WhatsAppBlast({
               <div className="flex items-center gap-3">
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
-                    CATEGORY_COLOR[guest.invitationCategory] ?? "bg-stone-100 text-stone-600"
+                    invitationCategoryColor(guest.invitationCategory)
                   }`}
                 >
-                  {CATEGORY_LABEL[guest.invitationCategory] ?? guest.invitationCategory}
+                  {invitationCategoryLabel(guest.invitationCategory)}
                 </span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${

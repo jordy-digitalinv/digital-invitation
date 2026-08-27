@@ -3,8 +3,13 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createGuestSchema, GUEST_SIDES, GUEST_CATEGORY_SORT_ORDER, type CreateGuestInput } from "@/modules/guests/guests.schema";
+import { createGuestSchema, GUEST_SIDES, type CreateGuestInput } from "@/modules/guests/guests.schema";
 import { renderWhatsappMessage, buildWhatsappLink } from "@/lib/whatsapp";
+import {
+  getInvitationCategories,
+  invitationCategoryLabel,
+  invitationCategoryColor,
+} from "@/lib/categories";
 import { formatDate } from "@/lib/utils";
 import {
   Copy,
@@ -50,30 +55,6 @@ const STATUS_COLOR: Record<string, string> = {
   TIDAK_HADIR: "bg-red-50 text-red-700",
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  GEREJA_SAJA: "Gereja Saja",
-  GEREJA_RESEPSI: "Gereja + Resepsi",
-  AKAD: "Akad",
-  AKAD_RESEPSI: "Akad & Resepsi",
-  PEMBERKATAN: "Pemberkatan",
-  PEMBERKATAN_RESEPSI: "Pemberkatan & Resepsi",
-  PEMBERKATAN_NASI_BOX: "Pemberkatan & Nasi Box",
-  SANGJIT: "Sangjit",
-  LAMARAN: "Lamaran",
-};
-
-const CATEGORY_COLOR: Record<string, string> = {
-  GEREJA_SAJA: "bg-blue-50 text-blue-700",
-  GEREJA_RESEPSI: "bg-purple-50 text-purple-700",
-  AKAD: "bg-blue-50 text-blue-700",
-  AKAD_RESEPSI: "bg-purple-50 text-purple-700",
-  PEMBERKATAN: "bg-blue-50 text-blue-700",
-  PEMBERKATAN_RESEPSI: "bg-purple-50 text-purple-700",
-  PEMBERKATAN_NASI_BOX: "bg-amber-50 text-amber-700",
-  SANGJIT: "bg-orange-50 text-orange-700",
-  LAMARAN: "bg-pink-50 text-pink-700",
-};
-
 const SIDE_LABEL: Record<string, string> = {
   GROOM: "Pihak Pria",
   BRIDE: "Pihak Wanita",
@@ -83,43 +64,6 @@ const SIDE_COLOR: Record<string, string> = {
   GROOM: "bg-sky-50 text-sky-700",
   BRIDE: "bg-rose-50 text-rose-700",
 };
-
-function getInvitationCategories(
-  clientType: string,
-  eventTypes: string[]
-): { value: string; label: string }[] {
-  if (clientType === "SANGJIT") {
-    return [{ value: "SANGJIT", label: "Sangjit" }];
-  }
-  if (clientType === "LAMARAN") {
-    return [{ value: "LAMARAN", label: "Lamaran" }];
-  }
-
-  // WEDDING
-  const hasAkad = eventTypes.includes("AKAD");
-  const hasPemberkatan = eventTypes.includes("PEMBERKATAN");
-  const hasResepsi = eventTypes.includes("RESEPSI");
-
-  const result: { value: string; label: string }[] = [];
-
-  if (hasAkad) {
-    result.push({ value: "AKAD", label: "Akad" });
-    if (hasResepsi) result.push({ value: "AKAD_RESEPSI", label: "Akad & Resepsi" });
-  }
-
-  if (hasPemberkatan) {
-    result.push({ value: "PEMBERKATAN", label: "Pemberkatan" });
-    result.push({ value: "PEMBERKATAN_NASI_BOX", label: "Pemberkatan & Nasi Box" });
-    if (hasResepsi) result.push({ value: "PEMBERKATAN_RESEPSI", label: "Pemberkatan & Resepsi" });
-  }
-
-  if (result.length === 0) {
-    result.push({ value: "AKAD_RESEPSI", label: "Akad & Resepsi" });
-    result.push({ value: "PEMBERKATAN_RESEPSI", label: "Pemberkatan & Resepsi" });
-  }
-
-  return result;
-}
 
 export function GuestsManager({ clientId, initialGuests, client }: Props) {
   const [guests, setGuests] = useState<GuestWithRsvp[]>(initialGuests);
@@ -134,17 +78,19 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
   const [editForm, setEditForm] = useState({ name: "", phone: "", invitationCategory: "", side: "", maxPax: 2 });
   const [saving, setSaving] = useState(false);
 
-  const invitationCategories = getInvitationCategories(
-    client?.clientType ?? "WEDDING",
-    (client?.events ?? []).map((e) => e.type)
-  );
-  const defaultCategory = invitationCategories[0]?.value ?? "AKAD_RESEPSI";
+  // Kategori tamu mengikuti daftar event yang diinput di tab Detail Acara.
+  const invitationCategories = getInvitationCategories(client?.events ?? []);
+  const defaultCategory = invitationCategories[0]?.value ?? "";
 
   const filteredGuests = guests
     .filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
     .filter((g) => sideFilter === "ALL" || g.side === sideFilter)
     .sort((a, b) => {
-      const categoryDiff = GUEST_CATEGORY_SORT_ORDER.indexOf(a.invitationCategory as any) - GUEST_CATEGORY_SORT_ORDER.indexOf(b.invitationCategory as any);
+      const order = (cat: string) => {
+        const idx = invitationCategories.findIndex((c) => c.value === cat);
+        return idx === -1 ? invitationCategories.length : idx;
+      };
+      const categoryDiff = order(a.invitationCategory) - order(b.invitationCategory);
       if (categoryDiff !== 0) return categoryDiff;
       return a.name.localeCompare(b.name, "id");
     });
@@ -418,7 +364,7 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nama Tamu *</label>
-              <input {...register("name")} placeholder="Ahmad Budi" className={inputClass} />
+              <input {...register("name")} placeholder="Ahmad Jordy" className={inputClass} />
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
             </div>
             <div>
@@ -628,11 +574,11 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          CATEGORY_COLOR[guest.invitationCategory] ?? "bg-stone-100 text-stone-600"
-                        }`}
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${invitationCategoryColor(
+                          guest.invitationCategory
+                        )}`}
                       >
-                        {CATEGORY_LABEL[guest.invitationCategory] ?? guest.invitationCategory}
+                        {invitationCategoryLabel(guest.invitationCategory)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

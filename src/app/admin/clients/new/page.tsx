@@ -7,10 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createClientSchema, type CreateClientInput } from "@/modules/clients/clients.schema";
 import { slugify } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowLeft, Heart, Star, Gem } from "lucide-react";
+import { ArrowLeft, Heart, Star, Gem, Cake, Building2 } from "lucide-react";
 
 type ClientTypeOption = {
-  value: "WEDDING" | "SANGJIT" | "LAMARAN";
+  value: "WEDDING" | "SANGJIT" | "LAMARAN" | "ULANG_TAHUN" | "KANTOR";
   label: string;
   description: string;
   icon: React.ReactNode;
@@ -40,13 +40,27 @@ const CLIENT_TYPE_OPTIONS: ClientTypeOption[] = [
     description: "Acara lamaran / pertunangan",
     icon: <Star size={22} />,
   },
+  {
+    value: "ULANG_TAHUN",
+    label: "Ulang Tahun",
+    description: "Celebrasi ulang tahun & syukuran",
+    icon: <Cake size={22} />,
+  },
+  {
+    value: "KANTOR",
+    label: "Kantor",
+    description: "Acara perusahaan & corporate event",
+    icon: <Building2 size={22} />,
+  },
 ];
 
 export default function NewClientPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<"WEDDING" | "SANGJIT" | "LAMARAN" | null>(null);
+  const [selectedType, setSelectedType] = useState<
+    "WEDDING" | "SANGJIT" | "LAMARAN" | "ULANG_TAHUN" | "KANTOR" | null
+  >(null);
 
   const {
     register,
@@ -56,10 +70,12 @@ export default function NewClientPage() {
     formState: { errors },
   } = useForm<CreateClientInput>({
     resolver: zodResolver(createClientSchema) as any,
-    defaultValues: { status: "DRAFT", clientType: "WEDDING" },
+    defaultValues: { status: "ACTIVE", clientType: "WEDDING" },
   });
 
-  function handleTypeSelect(type: "WEDDING" | "SANGJIT" | "LAMARAN") {
+  function handleTypeSelect(
+    type: "WEDDING" | "SANGJIT" | "LAMARAN" | "ULANG_TAHUN" | "KANTOR"
+  ) {
     setSelectedType(type);
     setValue("clientType", type);
   }
@@ -182,10 +198,14 @@ export default function NewClientPage() {
                 onChange={handleNameChange}
                 placeholder={
                   selectedType === "WEDDING"
-                    ? "Contoh: Budi & Ayu Wedding"
+                    ? "Contoh: Jordy & Rea Wedding"
                     : selectedType === "SANGJIT"
-                    ? "Contoh: Sangjit William & Lisa"
-                    : "Contoh: Lamaran Dito & Rina"
+                    ? "Contoh: Sangjit Jordy & Rea"
+                    : selectedType === "ULANG_TAHUN"
+                    ? "Contoh: Ulang Tahun ke-70 Mama"
+                    : selectedType === "KANTOR"
+                    ? "Contoh: Gathering PT Exetech Indonesia"
+                    : "Contoh: Lamaran Jordy & Rea"
                 }
                 className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -198,35 +218,29 @@ export default function NewClientPage() {
               <label className="block text-sm font-medium text-stone-700 mb-1">
                 Slug URL
               </label>
-              <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-400">
-                <span className="px-3 py-2 bg-stone-50 text-stone-500 text-sm border-r border-stone-300">
-                  /invite/
-                </span>
-                <input
-                  {...register("slug")}
-                  placeholder="budi-ayu"
-                  className="flex-1 px-3 py-2 text-sm focus:outline-none"
-                />
-              </div>
+              <p className="text-xs text-stone-400 mb-2">
+                Dipakai sebagai alamat undangan: nama pasangan/acara di depan domain utama
+              </p>
+              <input
+                {...register("slug")}
+                placeholder="jordy-rea"
+                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
               {slug && (
-                <p className="text-stone-400 text-xs mt-1">URL: /invite/{slug}</p>
+                <p className="text-stone-400 text-xs mt-1">
+                  Undangan: https://{slug}.digital-invitation.my.id
+                </p>
               )}
               {errors.slug && (
                 <p className="text-red-500 text-xs mt-1">{errors.slug.message}</p>
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
-                Status Awal
-              </label>
-              <select
-                {...register("status")}
-                className="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="DRAFT">Draft (belum publik)</option>
-                <option value="ACTIVE">Aktif (publik)</option>
-              </select>
+            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <p className="text-xs text-green-700">
+                Client langsung <span className="font-semibold">AKTIF</span> &amp; publik setelah dibuat
+              </p>
             </div>
 
             <div className="flex gap-3 pt-2">

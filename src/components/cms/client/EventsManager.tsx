@@ -15,6 +15,8 @@ const EVENT_LABELS: Record<string, string> = {
   AFTER_PARTY: "After Party",
   SANGJIT: "Sangjit",
   LAMARAN: "Lamaran",
+  ULANG_TAHUN: "Ulang Tahun",
+  KANTOR: "Acara Kantor",
 };
 
 const EVENT_OPTIONS_BY_TYPE: Record<string, { value: string; label: string }[]> = {
@@ -31,6 +33,14 @@ const EVENT_OPTIONS_BY_TYPE: Record<string, { value: string; label: string }[]> 
   LAMARAN: [
     { value: "LAMARAN", label: "Lamaran" },
     { value: "AFTER_PARTY", label: "After Party" },
+  ],
+  ULANG_TAHUN: [
+    { value: "ULANG_TAHUN", label: "Ulang Tahun / Syukuran" },
+    { value: "RESEPSI", label: "Resepsi (Jam Makan)" },
+  ],
+  KANTOR: [
+    { value: "KANTOR", label: "Acara Utama" },
+    { value: "RESEPSI", label: "Resepsi / Jam Makan" },
   ],
 };
 
@@ -63,6 +73,16 @@ const VENUE_PLACEHOLDERS: Record<string, { name: string; address: string; maps: 
   LAMARAN: {
     name: "Kediaman Keluarga",
     address: "Jl. Kelapa Gading No. 5, Jakarta",
+    maps: "https://maps.google.com/...",
+  },
+  ULANG_TAHUN: {
+    name: "Balai Kartini",
+    address: "Jl. Gatot Subroto No. 37, Jakarta",
+    maps: "https://maps.google.com/...",
+  },
+  KANTOR: {
+    name: "Hotel Grand Ballroom",
+    address: "Jl. Jenderal Sudirman No. 1, Jakarta",
     maps: "https://maps.google.com/...",
   },
 };

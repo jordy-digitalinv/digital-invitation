@@ -17,22 +17,23 @@ export function generateGuestToken(guestName?: string): string {
   return slug ? `${slug}_${random}` : random;
 }
 
-const CLIENT_TYPE_SUBDOMAIN: Record<string, string> = {
-  WEDDING: "wedding",
-  LAMARAN: "lamaran",
-  SANGJIT: "sangjit",
-};
-
+/**
+ * Link personal tamu memakai slug client sebagai subdomain (production):
+ * https://<client-slug>.<domain>/<guest-token>
+ * Di development (Turbopack), rewrite subdomain via proxy merusak hydration —
+ * jadi lokal memakai format path yang selalu berfungsi:
+ * http://localhost:3000/invite/<client-slug>/g/<token>
+ */
 export function generateInvitationUrl(
   appUrl: string,
   clientSlug: string,
-  token: string,
-  clientType?: string
+  token: string
 ): string {
   const domain = process.env.NEXT_PUBLIC_INVITATION_DOMAIN;
-  if (domain && clientType) {
-    const subdomain = CLIENT_TYPE_SUBDOMAIN[clientType] ?? "wedding";
-    return `https://${subdomain}.${domain}/${token}`;
+  const isLocal = appUrl.includes("localhost") || appUrl.includes("127.0.0.1");
+  if (domain && !isLocal) {
+    const scheme = appUrl.startsWith("https") ? "https" : "http";
+    return `${scheme}://${clientSlug}.${domain}/${token}`;
   }
   return `${appUrl}/invite/${clientSlug}/g/${token}`;
 }

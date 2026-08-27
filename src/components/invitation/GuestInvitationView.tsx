@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getDeviceType } from "@/lib/utils";
 import { TemplateRenderer } from "@/components/invitation/TemplateRenderer";
+import { ClientErrorLogger, InvitationErrorBoundary } from "@/components/invitation/debug/ClientErrorLogger";
 import { DisposableCamera } from "@/components/invitation/sections/DisposableCamera";
 
 const LUCKY_ENVELOPE_FONT_URL =
@@ -23,6 +24,8 @@ export async function GuestInvitationView({ token }: { token: string }) {
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link href={LUCKY_ENVELOPE_FONT_URL} rel="stylesheet" />
+    <ClientErrorLogger>
+      <InvitationErrorBoundary>
       <TemplateRenderer
         guest={{
           id: guest.id,
@@ -42,10 +45,14 @@ export async function GuestInvitationView({ token }: { token: string }) {
         guestName={guest.name}
         rsvpStatus={guest.rsvp?.status ?? null}
         hasCheckedIn={guest.attendances.length > 0}
+        barcodeVisibility={guest.client.theme?.barcodeVisibility ?? "AFTER_RSVP"}
+        enabled={guest.client.theme?.disposableCameraEnabled ?? true}
         eventDates={guest.client.events
           .filter((e) => e.date)
           .map((e) => new Date(e.date as Date).toISOString())}
       />
+      </InvitationErrorBoundary>
+    </ClientErrorLogger>
     </>
   );
 }

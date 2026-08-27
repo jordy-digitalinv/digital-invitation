@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Camera, CameraOff, Users, UserCheck, QrCode, RefreshCw, Clock, Download, Search } from "lucide-react";
+import { invitationCategoryLabel } from "@/lib/categories";
 
 interface TableInfo {
   code: string;
@@ -52,18 +53,6 @@ interface Props {
   events?: EventInfo[];
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  GEREJA_SAJA: "Gereja Saja",
-  GEREJA_RESEPSI: "Gereja + Resepsi",
-  AKAD: "Akad",
-  AKAD_RESEPSI: "Akad & Resepsi",
-  PEMBERKATAN: "Pemberkatan",
-  PEMBERKATAN_RESEPSI: "Pemberkatan & Resepsi",
-  PEMBERKATAN_NASI_BOX: "Pemberkatan & Nasi Box",
-  SANGJIT: "Sangjit",
-  LAMARAN: "Lamaran",
-};
-
 const RECEPTION_TYPES = new Set(["RESEPSI", "AFTER_PARTY"]);
 
 function buildScanLabels(events?: EventInfo[]): Record<string, string> {
@@ -102,7 +91,7 @@ async function exportToXlsx(
     const base = [
       att.sequenceNumber ?? i + 1,
       att.guest.name,
-      CATEGORY_LABEL[att.guest.invitationCategory] ?? att.guest.invitationCategory,
+      invitationCategoryLabel(att.guest.invitationCategory),
       att.guest.phone || "",
       formatArrivalTime(att.arrivedAt),
       att.guest.maxPax,
@@ -493,7 +482,7 @@ export function AttendanceManager({ clientId, initialAttendances, initialStats, 
                   : attendances.filter((a) => a.barcodeType === tab);
                 const isNasiBox = activeCategory === "PEMBERKATAN_NASI_BOX" ||
                   (tab === "CHURCH" && rows.every((r) => r.guest.invitationCategory === "PEMBERKATAN_NASI_BOX"));
-                const label = activeCategory ? (CATEGORY_LABEL[activeCategory] ?? activeCategory) : scanLabels[tab];
+                const label = activeCategory ? (invitationCategoryLabel(activeCategory)) : scanLabels[tab];
                 exportToXlsx(rows, label, isNasiBox);
               }}
               className="flex items-center gap-1.5 mr-4 px-3 py-1.5 text-xs font-medium text-stone-600 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors"
@@ -555,7 +544,7 @@ export function AttendanceManager({ clientId, initialAttendances, initialStats, 
                             : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                         }`}
                       >
-                        {CATEGORY_LABEL[cat] ?? cat} ({byTab.filter((a) => a.guest.invitationCategory === cat).length})
+                        {invitationCategoryLabel(cat)} ({byTab.filter((a) => a.guest.invitationCategory === cat).length})
                       </button>
                     ))}
                   </div>
@@ -582,7 +571,7 @@ export function AttendanceManager({ clientId, initialAttendances, initialStats, 
                       <tr key={att.id} className="hover:bg-stone-50 group">
                         <td className="px-4 py-3 sticky left-0 bg-white group-hover:bg-stone-50 z-10 border-r border-stone-100">
                           <p className="font-medium text-stone-800">{att.guest.name}</p>
-                          <p className="text-xs text-stone-400">{CATEGORY_LABEL[att.guest.invitationCategory]}</p>
+                          <p className="text-xs text-stone-400">{invitationCategoryLabel(att.guest.invitationCategory)}</p>
                         </td>
                         <td className="px-4 py-3 text-stone-400">{att.sequenceNumber ?? i + 1}</td>
                         <td className="px-4 py-3 text-stone-600 text-xs">{att.guest.phone || "—"}</td>

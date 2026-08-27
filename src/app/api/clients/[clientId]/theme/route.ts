@@ -4,8 +4,25 @@ import { apiError, apiSuccess } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+const TEMPLATE_SLUGS = [
+  "classic-elegant",
+  "modern-minimal",
+  "floral-blush",
+  "luxe-darkgold",
+  "sage-botanical",
+  "rustic-terracotta",
+  "jawa-ageng",
+  "ambon-manise",
+  "islami-emerald",
+  "sangjit-merah",
+  "minang-gadang",
+  "batak-ulos",
+  "hanoi-modern",
+  "lucky-envelope",
+] as const;
+
 const themeSchema = z.object({
-  templateSlug: z.enum(["lucky-envelope"]).optional(),
+  templateSlug: z.enum(TEMPLATE_SLUGS).optional(),
   primaryColor: z.string().min(1).optional(),
   secondaryColor: z.string().min(1).optional(),
   bgColor: z.string().min(1).optional(),
@@ -15,7 +32,9 @@ const themeSchema = z.object({
   customCss: z.string().optional(),
   showCountdown: z.boolean().optional(),
   showMap: z.boolean().optional(),
+  autoScroll: z.boolean().optional(),
   barcodeVisibility: z.enum(["ALWAYS", "AFTER_RSVP", "HIDDEN"]).optional(),
+  disposableCameraEnabled: z.boolean().optional(),
 });
 
 interface Params {

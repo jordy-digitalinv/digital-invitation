@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle, XCircle, Clock, Pencil, Trash2, X } from "lucide-react";
 import { SOUP_LABEL } from "@/lib/soup";
+import { invitationCategoryLabel } from "@/lib/categories";
 
 type RsvpStatus = "HADIR" | "TIDAK_HADIR" | "PENDING";
 
@@ -13,18 +14,6 @@ interface Rsvp {
   soupChoices: string[];
   createdAt: Date;
 }
-
-const CATEGORY_LABEL: Record<string, string> = {
-  GEREJA_SAJA: "Gereja Saja",
-  GEREJA_RESEPSI: "Gereja + Resepsi",
-  AKAD: "Akad",
-  AKAD_RESEPSI: "Akad & Resepsi",
-  PEMBERKATAN: "Pemberkatan Saja",
-  PEMBERKATAN_RESEPSI: "Pemberkatan & Resepsi",
-  PEMBERKATAN_NASI_BOX: "Pemberkatan & Nasi Box",
-  SANGJIT: "Sangjit",
-  LAMARAN: "Lamaran",
-};
 
 const SIDE_LABEL: Record<string, string> = {
   GROOM: "Pihak Pria",
@@ -224,7 +213,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                     : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                 }`}
               >
-                {CATEGORY_LABEL[cat] ?? cat}
+                {invitationCategoryLabel(cat)}
                 {cat.includes("RESEPSI") && " 🍲"}
               </button>
             ))}
@@ -269,7 +258,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-stone-800 text-sm">{guest.name}</p>
                           <span className="text-xs text-stone-400">
-                            {CATEGORY_LABEL[guest.invitationCategory] ?? guest.invitationCategory}
+                            {invitationCategoryLabel(guest.invitationCategory)}
                             {guest.invitationCategory.includes("RESEPSI") && " 🍲"}
                           </span>
                         </div>
@@ -362,7 +351,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                         <p className="text-xs text-stone-400">
                           {guest.phone || "Tidak ada no. HP"}
                           {" · "}
-                          {CATEGORY_LABEL[guest.invitationCategory] ?? guest.invitationCategory}
+                          {invitationCategoryLabel(guest.invitationCategory)}
                           {guest.invitationCategory.includes("RESEPSI") && " 🍲"}
                         </p>
                       </div>

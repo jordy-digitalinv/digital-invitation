@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { Trash2, Plus, User, Shield, Search } from "lucide-react";
 
-interface UserItem { id: string; name: string; email: string; role: string }
+interface UserItem {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  canAccessSeating?: boolean;
+  canAccessGuestPhotos?: boolean;
+}
 interface AllUser { id: string; name: string; email: string; role: string }
 
 interface Props {
@@ -23,6 +30,8 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
+  const [newSeating, setNewSeating] = useState(true);
+  const [newGuestPhotos, setNewGuestPhotos] = useState(true);
 
   const assignedIds = new Set(users.map((u) => u.id));
   const available = allUsers.filter(
@@ -35,12 +44,21 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
     const res = await fetch(`/api/clients/${clientId}/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId, canAccessSeating: newSeating, canAccessGuestPhotos: newGuestPhotos }),
     });
     const data = await res.json();
     if (!res.ok) { setError(data.error || "Gagal menambahkan"); return; }
     setUsers((p) => [...p, data]);
     setSearch("");
+  }
+
+  async function handlePermissionChange(userId: string, field: "canAccessSeating" | "canAccessGuestPhotos", value: boolean) {
+    setUsers((p) => p.map((u) => (u.id === userId ? { ...u, [field]: value } : u)));
+    await fetch(`/api/clients/${clientId}/users`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, [field]: value }),
+    });
   }
 
   async function handleRemove(userId: string) {
@@ -86,6 +104,28 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
                     <p className="text-sm font-medium text-stone-800 truncate">{user.name}</p>
                     <p className="text-xs text-stone-400 truncate">{user.email}</p>
                   </div>
+                  {user.role === "ADMIN" && (
+                    <div className="flex items-center gap-3 text-xs text-stone-500 shrink-0">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={user.canAccessSeating ?? true}
+                          onChange={(e) => handlePermissionChange(user.id, "canAccessSeating", e.target.checked)}
+                          className="accent-stone-700"
+                        />
+                        Seating
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={user.canAccessGuestPhotos ?? true}
+                          onChange={(e) => handlePermissionChange(user.id, "canAccessGuestPhotos", e.target.checked)}
+                          className="accent-stone-700"
+                        />
+                        Foto Tamu
+                      </label>
+                    </div>
+                  )}
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${roleInfo.cls}`}>
                     {roleInfo.label}
                   </span>
@@ -106,6 +146,17 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
       {adding && (
         <div className="bg-white rounded-2xl border border-stone-200 p-6">
           <h3 className="font-semibold text-stone-800 mb-3">Tambah Pengguna</h3>
+          <div className="flex items-center gap-4 text-xs text-stone-500 mb-3">
+            <span className="text-stone-400">Akses untuk pengguna baru (khusus role Admin):</span>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={newSeating} onChange={(e) => setNewSeating(e.target.checked)} className="accent-stone-700" />
+              Seating
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={newGuestPhotos} onChange={(e) => setNewGuestPhotos(e.target.checked)} className="accent-stone-700" />
+              Foto Tamu
+            </label>
+          </div>
           <div className="relative mb-3">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input

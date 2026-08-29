@@ -1,4 +1,4 @@
-import { canAccessClient, requireAuth } from "@/lib/auth/permissions";
+import { canAccessClient, canAccessGuestPhotos, requireAuth } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/database/prisma";
 import { apiError, apiSuccess } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
@@ -65,6 +65,10 @@ export async function PUT(req: Request, { params }: Params) {
     const body = await req.json();
     const parsed = themeSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.issues[0]?.message || "Validasi gagal");
+
+    if (parsed.data.disposableCameraEnabled !== undefined && !(await canAccessGuestPhotos(clientId))) {
+      delete parsed.data.disposableCameraEnabled;
+    }
 
     const theme = await prisma.theme.upsert({
       where: { clientId },

@@ -1,4 +1,4 @@
-import { canAccessClient, requireAuth } from "@/lib/auth/permissions";
+import { canAccessClient, canAccessSeating, requireAuth } from "@/lib/auth/permissions";
 import { createTableSchema, updateTableSchema } from "@/modules/tables/tables.schema";
 import {
   createTable,
@@ -20,6 +20,7 @@ export async function GET(_req: Request, { params }: Params) {
     await requireAuth();
     const hasAccess = await canAccessClient(clientId);
     if (!hasAccess) return apiError("Akses ditolak", 403);
+    if (!(await canAccessSeating(clientId))) return apiError("Akses ditolak", 403);
 
     const [tables, unassignedGuests] = await Promise.all([
       getTables(clientId),
@@ -38,6 +39,7 @@ export async function POST(req: Request, { params }: Params) {
     await requireAuth();
     const hasAccess = await canAccessClient(clientId);
     if (!hasAccess) return apiError("Akses ditolak", 403);
+    if (!(await canAccessSeating(clientId))) return apiError("Akses ditolak", 403);
 
     const body = await req.json();
     const parsed = createTableSchema.safeParse(body);
@@ -59,6 +61,7 @@ export async function PATCH(req: Request, { params }: Params) {
     await requireAuth();
     const hasAccess = await canAccessClient(clientId);
     if (!hasAccess) return apiError("Akses ditolak", 403);
+    if (!(await canAccessSeating(clientId))) return apiError("Akses ditolak", 403);
 
     const body = await req.json();
     const parsed = updateTableSchema.safeParse(body);
@@ -80,6 +83,7 @@ export async function DELETE(req: Request, { params }: Params) {
     await requireAuth();
     const hasAccess = await canAccessClient(clientId);
     if (!hasAccess) return apiError("Akses ditolak", 403);
+    if (!(await canAccessSeating(clientId))) return apiError("Akses ditolak", 403);
 
     const { id } = await req.json();
     if (!id) return apiError("id diperlukan");

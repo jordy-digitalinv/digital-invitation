@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/database/prisma";
-import { requireAuth, canAccessClient } from "@/lib/auth/permissions";
+import { requireAuth, canAccessClient, canAccessGuestPhotos } from "@/lib/auth/permissions";
 import { getSupabase, GUEST_PHOTOS_BUCKET } from "@/lib/supabase";
 import { apiError, apiSuccess } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ export async function DELETE(
     const { clientId, id } = await params;
     const hasAccess = await canAccessClient(clientId);
     if (!hasAccess) return apiError("Akses ditolak", 403);
+    if (!(await canAccessGuestPhotos(clientId))) return apiError("Akses ditolak", 403);
 
     const photo = await prisma.guestPhoto.findFirst({
       where: { id, clientId },

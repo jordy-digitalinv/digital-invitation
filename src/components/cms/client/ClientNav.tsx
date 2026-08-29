@@ -42,14 +42,28 @@ const STAFF_TABS = [
   { label: "Camera", path: "/attendance", icon: Camera },
 ];
 
-function getTabs(role?: string) {
+function getTabs(role: string | undefined, seatingAllowed: boolean, guestPhotosAllowed: boolean) {
   if (role === "SUPERADMIN") return SUPERADMIN_TABS;
   if (role === "STAFF") return STAFF_TABS;
-  return BASE_TABS;
+  return BASE_TABS.filter((tab) => {
+    if (tab.path === "/seating") return seatingAllowed;
+    if (tab.path === "/guest-photos") return guestPhotosAllowed;
+    return true;
+  });
 }
 
-export function ClientNav({ client, role }: { client: Client; role?: string }) {
-  const tabs = getTabs(role);
+export function ClientNav({
+  client,
+  role,
+  seatingAllowed = true,
+  guestPhotosAllowed = true,
+}: {
+  client: Client;
+  role?: string;
+  seatingAllowed?: boolean;
+  guestPhotosAllowed?: boolean;
+}) {
+  const tabs = getTabs(role, seatingAllowed, guestPhotosAllowed);
   const pathname = usePathname();
   const base = `/admin/clients/${client.id}`;
   const isSuperAdmin = role === "SUPERADMIN";

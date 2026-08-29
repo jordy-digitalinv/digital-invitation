@@ -289,7 +289,6 @@ interface Theme {
   showMap: boolean;
   autoScroll?: boolean | null;
   barcodeVisibility: "ALWAYS" | "AFTER_RSVP" | "HIDDEN";
-  disposableCameraEnabled?: boolean | null;
 }
 
 interface Props {
@@ -499,23 +498,6 @@ export function ThemeEditor({ clientId, initialTheme }: Props) {
                 </select>
               </div>
 
-              <label className="flex items-center justify-between cursor-pointer border-t border-stone-100 pt-4">
-                <div>
-                  <p className="text-sm font-medium text-stone-700">Kamera Tamu (Disposable Camera)</p>
-                  <p className="text-xs text-stone-400 mt-0.5">Izinkan tamu mengambil dan mengupload foto lewat undangan</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update("disposableCameraEnabled", (theme.disposableCameraEnabled ?? true) ? false : true)}
-                  className="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ml-4"
-                  style={{ background: (theme.disposableCameraEnabled ?? true) ? "#292524" : "#d6d3d1" }}
-                >
-                  <span
-                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                    style={{ transform: (theme.disposableCameraEnabled ?? true) ? "translateX(20px)" : "translateX(0)" }}
-                  />
-                </button>
-              </label>
             </div>
           </div>
 

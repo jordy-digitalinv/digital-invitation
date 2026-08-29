@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/auth";
-import { canAccessClient } from "@/lib/auth/permissions";
+import { canAccessClient, canAccessSeating, canAccessGuestPhotos } from "@/lib/auth/permissions";
 import { getClientNavInfo } from "@/modules/clients/clients.service";
 import { notFound, redirect } from "next/navigation";
 import { ClientNav } from "@/components/cms/client/ClientNav";
@@ -14,9 +14,11 @@ export default async function ClientLayout({ children, params }: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [hasAccess, client] = await Promise.all([
+  const [hasAccess, client, seatingAllowed, guestPhotosAllowed] = await Promise.all([
     canAccessClient(clientId),
     getClientNavInfo(clientId),
+    canAccessSeating(clientId),
+    canAccessGuestPhotos(clientId),
   ]);
   if (!hasAccess) redirect("/admin/clients");
   if (!client) notFound();
@@ -26,7 +28,12 @@ export default async function ClientLayout({ children, params }: Props) {
 
   return (
     <div className={`w-full mx-auto ${isSuperAdmin ? "max-w-5xl" : "max-w-7xl"}`}>
-      <ClientNav client={client} role={user.role} />
+      <ClientNav
+        client={client}
+        role={user.role}
+        seatingAllowed={seatingAllowed}
+        guestPhotosAllowed={guestPhotosAllowed}
+      />
       <div className="mt-4 md:mt-6">{children}</div>
     </div>
   );

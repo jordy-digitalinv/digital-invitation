@@ -17,7 +17,6 @@ const DEFAULT_THEME = {
   fontBody: "Jost",
   showMap: true,
   barcodeVisibility: "AFTER_RSVP" as const,
-  disposableCameraEnabled: true,
 };
 
 export default async function ThemePage({ params }: Props) {
@@ -40,7 +39,6 @@ export default async function ThemePage({ params }: Props) {
         showMap: theme.showMap ?? true,
         autoScroll: theme.autoScroll ?? true,
         barcodeVisibility: (theme.barcodeVisibility ?? "AFTER_RSVP") as "ALWAYS" | "AFTER_RSVP" | "HIDDEN",
-        disposableCameraEnabled: theme.disposableCameraEnabled ?? true,
       }
     : DEFAULT_THEME;
 

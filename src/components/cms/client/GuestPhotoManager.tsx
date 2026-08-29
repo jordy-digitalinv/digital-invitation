@@ -22,7 +22,15 @@ interface DriveStatus {
   email: string | null;
 }
 
-export function GuestPhotoManager({ clientId }: { clientId: string }) {
+export function GuestPhotoManager({
+  clientId,
+  initialDisposableCameraEnabled = true,
+}: {
+  clientId: string;
+  initialDisposableCameraEnabled?: boolean;
+}) {
+  const [disposableCameraEnabled, setDisposableCameraEnabled] = useState(initialDisposableCameraEnabled);
+  const [savingToggle, setSavingToggle] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -74,6 +82,23 @@ export function GuestPhotoManager({ clientId }: { clientId: string }) {
     if (gdrive) router.replace(pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function toggleDisposableCamera() {
+    const next = !disposableCameraEnabled;
+    setDisposableCameraEnabled(next);
+    setSavingToggle(true);
+    try {
+      await fetch(`/api/clients/${clientId}/theme`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ disposableCameraEnabled: next }),
+      });
+    } catch {
+      setDisposableCameraEnabled(!next);
+    } finally {
+      setSavingToggle(false);
+    }
+  }
 
   async function deletePhoto(id: string) {
     if (!confirm("Hapus foto ini?")) return;
@@ -205,6 +230,26 @@ export function GuestPhotoManager({ clientId }: { clientId: string }) {
           </button>
         </div>
       </div>
+
+      {/* Disposable camera toggle */}
+      <label className="flex items-center justify-between cursor-pointer bg-white border border-stone-200 rounded-xl px-4 py-3">
+        <div>
+          <p className="text-sm font-medium text-stone-700">Kamera Tamu (Disposable Camera)</p>
+          <p className="text-xs text-stone-400 mt-0.5">Izinkan tamu mengambil dan mengupload foto lewat undangan</p>
+        </div>
+        <button
+          type="button"
+          onClick={toggleDisposableCamera}
+          disabled={savingToggle}
+          className="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ml-4 disabled:opacity-60"
+          style={{ background: disposableCameraEnabled ? "#292524" : "#d6d3d1" }}
+        >
+          <span
+            className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+            style={{ transform: disposableCameraEnabled ? "translateX(20px)" : "translateX(0)" }}
+          />
+        </button>
+      </label>
 
       {gdriveNotice && (
         <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg bg-amber-50 text-amber-800 text-sm">

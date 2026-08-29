@@ -13,7 +13,13 @@ export async function GET(_req: Request, { params }: Params) {
       where: { clientId },
       include: { user: { select: { id: true, name: true, email: true, role: true } } },
     });
-    return apiSuccess(clientUsers.map((cu) => cu.user));
+    return apiSuccess(
+      clientUsers.map((cu) => ({
+        ...cu.user,
+        canAccessSeating: cu.canAccessSeating,
+        canAccessGuestPhotos: cu.canAccessGuestPhotos,
+      }))
+    );
   } catch {
     return apiError("Unauthorized", 401);
   }
@@ -23,7 +29,7 @@ export async function POST(req: Request, { params }: Params) {
   try {
     await requireSuperAdmin();
     const { clientId } = await params;
-    const { userId } = await req.json();
+    const { userId, canAccessSeating, canAccessGuestPhotos } = await req.json();
     if (!userId) return apiError("userId diperlukan");
 
     // Check user exists
@@ -33,13 +39,39 @@ export async function POST(req: Request, { params }: Params) {
     });
     if (!user) return apiError("Pengguna tidak ditemukan");
 
+    const flags = {
+      canAccessSeating: canAccessSeating ?? true,
+      canAccessGuestPhotos: canAccessGuestPhotos ?? true,
+    };
+
     // Upsert — prevent duplicate
     await prisma.clientUser.upsert({
       where: { userId_clientId: { userId, clientId } },
-      update: {},
-      create: { userId, clientId },
+      update: flags,
+      create: { userId, clientId, ...flags },
     });
-    return apiSuccess(user, 201);
+    return apiSuccess({ ...user, ...flags }, 201);
+  } catch (err: any) {
+    if (err?.message === "FORBIDDEN") return apiError("Akses ditolak", 403);
+    return apiError("Terjadi kesalahan server", 500);
+  }
+}
+
+export async function PATCH(req: Request, { params }: Params) {
+  try {
+    await requireSuperAdmin();
+    const { clientId } = await params;
+    const { userId, canAccessSeating, canAccessGuestPhotos } = await req.json();
+    if (!userId) return apiError("userId diperlukan");
+
+    const clientUser = await prisma.clientUser.update({
+      where: { userId_clientId: { userId, clientId } },
+      data: {
+        ...(canAccessSeating !== undefined && { canAccessSeating }),
+        ...(canAccessGuestPhotos !== undefined && { canAccessGuestPhotos }),
+      },
+    });
+    return apiSuccess(clientUser);
   } catch (err: any) {
     if (err?.message === "FORBIDDEN") return apiError("Akses ditolak", 403);
     return apiError("Terjadi kesalahan server", 500);

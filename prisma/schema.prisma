@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id             String       @id @default(cuid())
-  email          String       @unique
+  id             String              @id @default(cuid())
+  email          String              @unique
   password       String
   name           String
-  role           UserRole     @default(ADMIN)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  role           UserRole            @default(ADMIN)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   clientUsers    ClientUser[]
-  createdClients Client[]     @relation("ClientCreatedBy")
+  createdClients Client[]            @relation("ClientCreatedBy")
   googleDrive    GoogleDriveAccount?
 
   @@map("users")
@@ -68,48 +68,50 @@ model Client {
 }
 
 model ClientUser {
-  id       String @id @default(cuid())
-  userId   String
-  clientId String
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String  @id @default(cuid())
+  userId               String
+  clientId             String
+  canAccessSeating     Boolean @default(true)
+  canAccessGuestPhotos Boolean @default(true)
+  client               Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, clientId])
   @@map("client_users")
 }
 
 model WeddingProfile {
-  id             String   @id @default(cuid())
-  clientId       String   @unique
-  groomName      String   @default("")
-  brideName      String   @default("")
-  groomNickname  String   @default("")
-  brideNickname  String   @default("")
-  groomParents   String   @default("")
-  brideParents   String   @default("")
-  groomParentsEn String?
-  brideParentsEn String?
-  groomPhoto     String?
-  bridePhoto     String?
-  showGroomPhoto Boolean  @default(true)
-  showBridePhoto Boolean  @default(true)
-  heroImage      String?
-  story           String?
-  storyEn         String?
-  storyTitle      String?
-  storyTitleEn    String?
-  showStoryTitle  Boolean  @default(true)
-  openingQuote    String?
-  openingQuoteEn  String?
-  openingQuoteBy  String?
-  openingQuoteByEn String?
+  id                 String   @id @default(cuid())
+  clientId           String   @unique
+  groomName          String   @default("")
+  brideName          String   @default("")
+  groomNickname      String   @default("")
+  brideNickname      String   @default("")
+  groomParents       String   @default("")
+  brideParents       String   @default("")
+  groomParentsEn     String?
+  brideParentsEn     String?
+  groomPhoto         String?
+  bridePhoto         String?
+  showGroomPhoto     Boolean  @default(true)
+  showBridePhoto     Boolean  @default(true)
+  heroImage          String?
+  story              String?
+  storyEn            String?
+  storyTitle         String?
+  storyTitleEn       String?
+  showStoryTitle     Boolean  @default(true)
+  openingQuote       String?
+  openingQuoteEn     String?
+  openingQuoteBy     String?
+  openingQuoteByEn   String?
   attentionTitle     String?
   attentionContent   String?
   attentionTitleEn   String?
   attentionContentEn String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("wedding_profiles")
 }
@@ -150,24 +152,24 @@ model Gallery {
 }
 
 model Theme {
-  id             String   @id @default(cuid())
-  clientId       String   @unique
-  templateSlug   String   @default("classic-elegant")
-  primaryColor   String   @default("#b8860b")
-  secondaryColor String   @default("#f5f0e8")
-  bgColor        String   @default("#fffdf7")
-  textColor      String   @default("#3d3d3d")
-  fontHeading    String   @default("Playfair Display")
-  fontBody       String   @default("Lato")
-  customCss      String?
-  showCountdown      Boolean  @default(false)
-  barcodeVisibility  String   @default("AFTER_RSVP")
-  autoScroll         Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  showMap            Boolean  @default(true)
-  disposableCameraEnabled Boolean @default(true)
-  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id                      String   @id @default(cuid())
+  clientId                String   @unique
+  templateSlug            String   @default("classic-elegant")
+  primaryColor            String   @default("#b8860b")
+  secondaryColor          String   @default("#f5f0e8")
+  bgColor                 String   @default("#fffdf7")
+  textColor               String   @default("#3d3d3d")
+  fontHeading             String   @default("Playfair Display")
+  fontBody                String   @default("Lato")
+  customCss               String?
+  showCountdown           Boolean  @default(false)
+  barcodeVisibility       String   @default("AFTER_RSVP")
+  autoScroll              Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  showMap                 Boolean  @default(true)
+  disposableCameraEnabled Boolean  @default(true)
+  client                  Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("themes")
 }
@@ -197,31 +199,31 @@ model Section {
 }
 
 model Guest {
-  id                 String             @id @default(cuid())
+  id                 String          @id @default(cuid())
   clientId           String
   name               String
   phone              String?
   email              String?
-  invitationCategory String             @default("")
+  invitationCategory String          @default("")
   side               GuestSide?
-  barcodeChurch      String?            @unique
-  barcodeReception   String?            @unique
-  guestToken         String             @unique @default("")
-  invitationUrl      String             @default("")
-  maxPax             Int                @default(2)
-  isOpened           Boolean            @default(false)
+  barcodeChurch      String?         @unique
+  barcodeReception   String?         @unique
+  guestToken         String          @unique @default("")
+  invitationUrl      String          @default("")
+  maxPax             Int             @default(2)
+  isOpened           Boolean         @default(false)
   openedAt           DateTime?
-  rsvpStatus         RsvpStatus         @default(PENDING)
-  sendStatus         GuestSendStatus    @default(UNSENT)
-  isActive           Boolean            @default(true)
+  rsvpStatus         RsvpStatus      @default(PENDING)
+  sendStatus         GuestSendStatus @default(UNSENT)
+  isActive           Boolean         @default(true)
   tableId            String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
   attendances        Attendance[]
   visits             GuestVisit[]
   guestPhotos        GuestPhoto[]
-  client             Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  table              Table?             @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  client             Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  table              Table?          @relation(fields: [tableId], references: [id], onDelete: SetNull)
   rsvp               Rsvp?
   wishes             Wish[]
 

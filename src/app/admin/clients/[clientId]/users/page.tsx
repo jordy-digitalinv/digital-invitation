@@ -26,7 +26,11 @@ export default async function ClientUsersPage({ params }: Props) {
 
   if (!clientUsers && !(await prisma.client.findUnique({ where: { id: clientId } }))) notFound();
 
-  const assignedUsers = clientUsers.map((cu) => cu.user);
+  const assignedUsers = clientUsers.map((cu) => ({
+    ...cu.user,
+    canAccessSeating: cu.canAccessSeating,
+    canAccessGuestPhotos: cu.canAccessGuestPhotos,
+  }));
 
   return (
     <div className="max-w-2xl">

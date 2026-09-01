@@ -2,6 +2,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/database/prisma";
 import { DEFAULT_SECTIONS } from "@/constants/sections";
 import { DEFAULT_TEMPLATE } from "@/lib/whatsapp";
+import { addClientDomain, removeClientDomain } from "@/lib/vercel";
 import type { CreateClientInput, UpdateClientInput } from "./clients.schema";
 
 export async function getAllClients(userId: string, role: string) {
@@ -95,15 +96,27 @@ export async function createClient(data: CreateClientInput, userId: string) {
     data: { userId, clientId: client.id },
   });
 
+  await addClientDomain(client.slug);
+
   return client;
 }
 
 export async function updateClient(id: string, data: UpdateClientInput) {
-  return prisma.client.update({ where: { id }, data });
+  const existing = await prisma.client.findUnique({ where: { id }, select: { slug: true } });
+  const client = await prisma.client.update({ where: { id }, data });
+
+  if (data.slug && existing && data.slug !== existing.slug) {
+    await removeClientDomain(existing.slug);
+    await addClientDomain(client.slug);
+  }
+
+  return client;
 }
 
 export async function deleteClient(id: string) {
-  return prisma.client.delete({ where: { id } });
+  const client = await prisma.client.delete({ where: { id } });
+  await removeClientDomain(client.slug);
+  return client;
 }
 
 export async function isSlugTaken(slug: string, excludeId?: string) {

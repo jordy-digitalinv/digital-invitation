@@ -56,4 +56,22 @@ export const authConfig: NextAuthConfig = {
   },
   session: { strategy: "jwt" },
   trustHost: true,
+  // __Host- makes the session cookie host-only (no Domain attribute allowed) — a
+  // guest-facing invitation subdomain can't shadow it with a parent-scoped cookie.
+  // Requires Secure, which needs HTTPS, so this only applies in production.
+  ...(process.env.NODE_ENV === "production"
+    ? {
+        cookies: {
+          sessionToken: {
+            name: "__Host-authjs.session-token",
+            options: {
+              httpOnly: true,
+              sameSite: "lax",
+              path: "/",
+              secure: true,
+            },
+          },
+        },
+      }
+    : {}),
 };

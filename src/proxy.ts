@@ -4,10 +4,13 @@ import { NextResponse } from "next/server";
 const MAIN_DOMAIN =
   process.env.NEXT_PUBLIC_INVITATION_DOMAIN ?? "digital-invitation.my.id";
 
+const CMS_HOST = `cms.${MAIN_DOMAIN}`;
+
 export default auth((req) => {
   const hostname = req.headers.get("host") || req.nextUrl.hostname;
+  const isCmsHost = hostname === CMS_HOST;
   const isSubdomain =
-    hostname !== MAIN_DOMAIN && hostname.endsWith(`.${MAIN_DOMAIN}`);
+    !isCmsHost && hostname !== MAIN_DOMAIN && hostname.endsWith(`.${MAIN_DOMAIN}`);
 
   if (isSubdomain) {
     // Slug client kini menjadi subdomain: jordy-rea.domain.com -> /invite/jordy-rea
@@ -36,7 +39,8 @@ export default auth((req) => {
 
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
-  const isAdminRoute = pathname.startsWith("/admin");
+  const isCmsRoot = isCmsHost && pathname === "/";
+  const isAdminRoute = isCmsRoot || pathname.startsWith("/admin");
   const isLoginPage = pathname === "/login";
 
   if (isAdminRoute && !isLoggedIn) {
@@ -60,6 +64,12 @@ export default auth((req) => {
         );
       }
     }
+  }
+
+  if (isCmsRoot) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin";
+    return NextResponse.rewrite(url);
   }
 
   return NextResponse.next();

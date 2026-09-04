@@ -42,6 +42,7 @@ export const eventSchema = z.object({
   mapsUrl: z.string().default(""),
   mapsEmbed: z.string().default(""),
   sortOrder: z.number().default(0),
+  isAyce: z.boolean().default(false),
 });
 
 export type WeddingProfileInput = z.infer<typeof weddingProfileSchema>;

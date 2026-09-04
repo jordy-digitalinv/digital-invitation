@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth/auth";
-import { canAccessClient, canAccessSeating, canAccessGuestPhotos } from "@/lib/auth/permissions";
+import { canAccessClient, canAccessSeating, canAccessGuestPhotos, canAccessMenu } from "@/lib/auth/permissions";
 import { getClientNavInfo } from "@/modules/clients/clients.service";
+import { hasAyceEvents } from "@/modules/menu/menu.service";
 import { notFound, redirect } from "next/navigation";
 import { ClientNav } from "@/components/cms/client/ClientNav";
 
@@ -14,14 +15,18 @@ export default async function ClientLayout({ children, params }: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [hasAccess, client, seatingAllowed, guestPhotosAllowed] = await Promise.all([
+  const [hasAccess, client, seatingAllowed, guestPhotosAllowed, ayceEnabled, menuPermitted] = await Promise.all([
     canAccessClient(clientId),
     getClientNavInfo(clientId),
     canAccessSeating(clientId),
     canAccessGuestPhotos(clientId),
+    hasAyceEvents(clientId),
+    canAccessMenu(clientId),
   ]);
   if (!hasAccess) redirect("/admin/clients");
   if (!client) notFound();
+
+  const menuAllowed = ayceEnabled && menuPermitted;
 
   const user = session.user as { role?: string };
   const isSuperAdmin = user.role === "SUPERADMIN";
@@ -33,6 +38,7 @@ export default async function ClientLayout({ children, params }: Props) {
         role={user.role}
         seatingAllowed={seatingAllowed}
         guestPhotosAllowed={guestPhotosAllowed}
+        menuAllowed={menuAllowed}
       />
       <div className="mt-4 md:mt-6">{children}</div>
     </div>

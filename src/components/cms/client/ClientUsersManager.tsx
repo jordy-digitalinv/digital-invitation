@@ -10,6 +10,7 @@ interface UserItem {
   role: string;
   canAccessSeating?: boolean;
   canAccessGuestPhotos?: boolean;
+  canAccessMenu?: boolean;
 }
 interface AllUser { id: string; name: string; email: string; role: string }
 
@@ -32,6 +33,7 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
   const [error, setError] = useState("");
   const [newSeating, setNewSeating] = useState(true);
   const [newGuestPhotos, setNewGuestPhotos] = useState(true);
+  const [newMenu, setNewMenu] = useState(true);
 
   const assignedIds = new Set(users.map((u) => u.id));
   const available = allUsers.filter(
@@ -44,7 +46,7 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
     const res = await fetch(`/api/clients/${clientId}/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, canAccessSeating: newSeating, canAccessGuestPhotos: newGuestPhotos }),
+      body: JSON.stringify({ userId, canAccessSeating: newSeating, canAccessGuestPhotos: newGuestPhotos, canAccessMenu: newMenu }),
     });
     const data = await res.json();
     if (!res.ok) { setError(data.error || "Gagal menambahkan"); return; }
@@ -52,7 +54,7 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
     setSearch("");
   }
 
-  async function handlePermissionChange(userId: string, field: "canAccessSeating" | "canAccessGuestPhotos", value: boolean) {
+  async function handlePermissionChange(userId: string, field: "canAccessSeating" | "canAccessGuestPhotos" | "canAccessMenu", value: boolean) {
     setUsers((p) => p.map((u) => (u.id === userId ? { ...u, [field]: value } : u)));
     await fetch(`/api/clients/${clientId}/users`, {
       method: "PATCH",
@@ -124,6 +126,15 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
                         />
                         Foto Tamu
                       </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={user.canAccessMenu ?? true}
+                          onChange={(e) => handlePermissionChange(user.id, "canAccessMenu", e.target.checked)}
+                          className="accent-stone-700"
+                        />
+                        Menu
+                      </label>
                     </div>
                   )}
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${roleInfo.cls}`}>
@@ -155,6 +166,10 @@ export function ClientUsersManager({ clientId, initialUsers, allUsers }: Props) 
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" checked={newGuestPhotos} onChange={(e) => setNewGuestPhotos(e.target.checked)} className="accent-stone-700" />
               Foto Tamu
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={newMenu} onChange={(e) => setNewMenu(e.target.checked)} className="accent-stone-700" />
+              Menu
             </label>
           </div>
           <div className="relative mb-3">

@@ -18,6 +18,7 @@ export async function GET(_req: Request, { params }: Params) {
         ...cu.user,
         canAccessSeating: cu.canAccessSeating,
         canAccessGuestPhotos: cu.canAccessGuestPhotos,
+        canAccessMenu: cu.canAccessMenu,
       }))
     );
   } catch {
@@ -29,7 +30,7 @@ export async function POST(req: Request, { params }: Params) {
   try {
     await requireSuperAdmin();
     const { clientId } = await params;
-    const { userId, canAccessSeating, canAccessGuestPhotos } = await req.json();
+    const { userId, canAccessSeating, canAccessGuestPhotos, canAccessMenu } = await req.json();
     if (!userId) return apiError("userId diperlukan");
 
     // Check user exists
@@ -42,6 +43,7 @@ export async function POST(req: Request, { params }: Params) {
     const flags = {
       canAccessSeating: canAccessSeating ?? true,
       canAccessGuestPhotos: canAccessGuestPhotos ?? true,
+      canAccessMenu: canAccessMenu ?? true,
     };
 
     // Upsert — prevent duplicate
@@ -61,7 +63,7 @@ export async function PATCH(req: Request, { params }: Params) {
   try {
     await requireSuperAdmin();
     const { clientId } = await params;
-    const { userId, canAccessSeating, canAccessGuestPhotos } = await req.json();
+    const { userId, canAccessSeating, canAccessGuestPhotos, canAccessMenu } = await req.json();
     if (!userId) return apiError("userId diperlukan");
 
     const clientUser = await prisma.clientUser.update({
@@ -69,6 +71,7 @@ export async function PATCH(req: Request, { params }: Params) {
       data: {
         ...(canAccessSeating !== undefined && { canAccessSeating }),
         ...(canAccessGuestPhotos !== undefined && { canAccessGuestPhotos }),
+        ...(canAccessMenu !== undefined && { canAccessMenu }),
       },
     });
     return apiSuccess(clientUser);

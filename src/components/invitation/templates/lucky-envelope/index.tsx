@@ -30,6 +30,7 @@ import { MusicPlayer } from "../../sections/MusicPlayer";
 import { BarcodeSection, getEventVenueName } from "../../sections/BarcodeSection";
 import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
+import { findMenuEvent } from "@/lib/menu";
 import type { Rsvp } from "@/types/prisma.types";
 import { useGuestLanguage } from "@/hooks/useGuestLanguage";
 
@@ -120,6 +121,8 @@ interface Props {
       venueNameEn: string | null;
       venueAddress: string;
       mapsUrl: string;
+      isAyce: boolean;
+      menuItems: { id: string; name: string }[];
     }[];
     musics: { url: string; title: string }[];
     sections: { sectionKey: string; sortOrder: number }[];
@@ -172,8 +175,7 @@ const TR = {
     eyebrow_rsvp: "Konfirmasi", title_rsvp: "RSVP",
     attending: "Hadir", notAttending: "Tidak Hadir",
     guestCount: "Jumlah Tamu", max: "maks.",
-    soupTitle: "Pilihan Soup", soupGuestLabel: "Tamu ke-", soupPlaceholder: "Pilih soup",
-    soup_ORIGINAL_KONBU: "Original Konbu", soup_JAPANESE_BROTH: "Japanese Broth", soup_TOM_YUM: "Tom Yum", soup_COLLAGEN: "Collagen",
+    menuTitle: "Pilihan Menu", menuGuestLabel: "Tamu ke-", menuPlaceholder: "Pilih menu",
     messagePlaceholder: "Pesan atau doa (opsional)",
     confirmBtn: "Konfirmasi Kehadiran", sending: "Mengirim...",
     thankYou: "Terima kasih!", confirmed: "Konfirmasi kehadiran telah diterima",
@@ -206,8 +208,7 @@ const TR = {
     eyebrow_rsvp: "Confirmation", title_rsvp: "RSVP",
     attending: "Attending", notAttending: "Not Attending",
     guestCount: "Number of Guests", max: "max.",
-    soupTitle: "Soup Choice", soupGuestLabel: "Guest ", soupPlaceholder: "Choose soup",
-    soup_ORIGINAL_KONBU: "Original Konbu", soup_JAPANESE_BROTH: "Japanese Broth", soup_TOM_YUM: "Tom Yum", soup_COLLAGEN: "Collagen",
+    menuTitle: "Menu Choice", menuGuestLabel: "Guest ", menuPlaceholder: "Choose menu",
     messagePlaceholder: "Message or prayer (optional)",
     confirmBtn: "Confirm Attendance", sending: "Sending...",
     thankYou: "Thank you!", confirmed: "Your attendance has been confirmed",
@@ -891,10 +892,11 @@ function GallerySection({
 // ─── RSVP Section ──────────────────────────────────────────────────────────────
 
 function RSVPSection({
-  clientId, guest, token, gold, ivory, champagne, text, fontH, fontB, t, onConfirmed,
+  clientId, guest, token, gold, ivory, champagne, text, fontH, fontB, t, menuItems, onConfirmed,
 }: {
   clientId: string; guest: Guest; token: string; gold: string; ivory: string;
   champagne: string; text: string; fontH: string; fontB: string; t: Translations;
+  menuItems: { id: string; name: string }[];
   onConfirmed?: (status: "HADIR" | "TIDAK_HADIR") => void;
 }) {
   const respondedRsvp = guest.rsvp && guest.rsvp.status !== "PENDING" ? guest.rsvp : undefined;
@@ -902,17 +904,17 @@ function RSVPSection({
   const [pax, setPax] = useState(respondedRsvp?.paxCount ?? guest.maxPax);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(!!respondedRsvp);
-  const needsSoup = status === "HADIR" && (guest.invitationCategory?.includes("RESEPSI") ?? false);
-  const [soupSelections, setSoupSelections] = useState<Record<number, string>>(() => {
-    const existing = (respondedRsvp?.soupChoices as string[] | undefined) ?? [];
+  const needsMenu = status === "HADIR" && menuItems.length > 0;
+  const [menuSelections, setMenuSelections] = useState<Record<number, string>>(() => {
+    const existing = (respondedRsvp?.menuChoices as string[] | undefined) ?? [];
     return Object.fromEntries(existing.map((c, i) => [i, c]));
   });
-  const soupChoices = Array.from({ length: pax }, (_, i) => soupSelections[i] ?? "");
-  const soupIncomplete = needsSoup && soupChoices.some((s) => !s);
+  const menuChoices = Array.from({ length: pax }, (_, i) => menuSelections[i] ?? "");
+  const menuIncomplete = needsMenu && menuChoices.some((s) => !s);
 
   async function submit() {
     setSaving(true);
-    const res = await fetch("/api/rsvp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, guestId: guest.id, token, name: guest.name, paxCount: pax, status, soupChoices: needsSoup ? soupChoices : undefined }) });
+    const res = await fetch("/api/rsvp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, guestId: guest.id, token, name: guest.name, paxCount: pax, status, menuChoices: needsMenu ? menuChoices : undefined }) });
     if (res.ok) { setDone(true); onConfirmed?.(status); }
     setSaving(false);
   }
@@ -954,21 +956,21 @@ function RSVPSection({
                 )}
               </AnimatePresence>
               <AnimatePresence>
-                {needsSoup && (
+                {needsMenu && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden", marginBottom: "1.2rem" }}>
-                    <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.6rem", letterSpacing: "0.24em", textTransform: "uppercase", color: gold, marginBottom: "0.75rem" }}>{t.soupTitle}</p>
+                    <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.6rem", letterSpacing: "0.24em", textTransform: "uppercase", color: gold, marginBottom: "0.75rem" }}>{t.menuTitle}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                      {soupChoices.map((choice, i) => (
+                      {menuChoices.map((choice, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                          <span style={{ fontSize: "0.75rem", color: text, opacity: 0.5, fontFamily: `'${fontB}', 'Jost', sans-serif`, minWidth: "3.2rem" }}>{t.soupGuestLabel}{i + 1}</span>
+                          <span style={{ fontSize: "0.75rem", color: text, opacity: 0.5, fontFamily: `'${fontB}', 'Jost', sans-serif`, minWidth: "3.2rem" }}>{t.menuGuestLabel}{i + 1}</span>
                           <select
                             value={choice}
-                            onChange={(e) => setSoupSelections((prev) => ({ ...prev, [i]: e.target.value }))}
+                            onChange={(e) => setMenuSelections((prev) => ({ ...prev, [i]: e.target.value }))}
                             style={{ flex: 1, padding: "0.6rem 0.75rem", borderRadius: "10px", border: `1px solid ${gold}44`, background: "#fff", color: text, fontSize: "0.8rem", fontFamily: `'${fontB}', 'Jost', sans-serif`, outline: "none" }}
                           >
-                            <option value="">{t.soupPlaceholder}</option>
-                            {(["ORIGINAL_KONBU", "JAPANESE_BROTH", "TOM_YUM", "COLLAGEN"] as const).map((opt) => (
-                              <option key={opt} value={opt}>{t[`soup_${opt}` as keyof Translations]}</option>
+                            <option value="">{t.menuPlaceholder}</option>
+                            {menuItems.map((item) => (
+                              <option key={item.id} value={item.name}>{item.name}</option>
                             ))}
                           </select>
                         </div>
@@ -977,7 +979,7 @@ function RSVPSection({
                   </motion.div>
                 )}
               </AnimatePresence>
-              <motion.button whileHover={{ scale: 1.02, boxShadow: `0 10px 28px ${gold}50`, transition: { duration: 0.25 } }} whileTap={{ scale: 0.97 }} onClick={submit} disabled={saving || soupIncomplete} style={{ width: "100%", marginTop: "1rem", padding: "0.95rem", background: `linear-gradient(135deg, ${gold} 0%, #e8c98a 50%, ${gold} 100%)`, backgroundSize: "200% 100%", color: "#2a1c14", border: "none", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", cursor: saving || soupIncomplete ? "not-allowed" : "pointer", fontFamily: "'Cinzel', serif", opacity: saving || soupIncomplete ? 0.6 : 1, transition: "opacity 0.2s" }}>
+              <motion.button whileHover={{ scale: 1.02, boxShadow: `0 10px 28px ${gold}50`, transition: { duration: 0.25 } }} whileTap={{ scale: 0.97 }} onClick={submit} disabled={saving || menuIncomplete} style={{ width: "100%", marginTop: "1rem", padding: "0.95rem", background: `linear-gradient(135deg, ${gold} 0%, #e8c98a 50%, ${gold} 100%)`, backgroundSize: "200% 100%", color: "#2a1c14", border: "none", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", cursor: saving || menuIncomplete ? "not-allowed" : "pointer", fontFamily: "'Cinzel', serif", opacity: saving || menuIncomplete ? 0.6 : 1, transition: "opacity 0.2s" }}>
                 {saving ? t.sending : t.confirmBtn}
               </motion.button>
             </div>
@@ -1493,7 +1495,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
 
               {sectionKeys.includes("RSVP") &&
                 (token && guest ? (
-                  <RSVPSection clientId={client.id} guest={guest} token={token} gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} fontB={fontB} t={t} onConfirmed={(s) => setConfirmedRsvpStatus(s)} />
+                  <RSVPSection clientId={client.id} guest={guest} token={token} gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} fontB={fontB} t={t} menuItems={findMenuEvent(client.events, guest.invitationCategory ?? "")?.menuItems ?? []} onConfirmed={(s) => setConfirmedRsvpStatus(s)} />
                 ) : (
                   <RSVPPlaceholder gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} t={t} />
                 ))}

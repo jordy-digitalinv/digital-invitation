@@ -57,7 +57,7 @@ export async function getSeatingExport(clientId: string) {
       where: { clientId },
       include: {
         guests: {
-          select: { id: true, name: true, maxPax: true, rsvp: { select: { paxCount: true, soupChoices: true } } },
+          select: { id: true, name: true, maxPax: true, rsvp: { select: { paxCount: true, menuChoices: true } } },
         },
       },
       orderBy: [{ sortOrder: "asc" }, { code: "asc" }],
@@ -69,18 +69,18 @@ export async function getSeatingExport(clientId: string) {
         name: true,
         maxPax: true,
         invitationCategory: true,
-        rsvp: { select: { paxCount: true, soupChoices: true } },
+        rsvp: { select: { paxCount: true, menuChoices: true } },
       },
       orderBy: { name: "asc" },
     }),
   ]);
 
-  function mapGuest(g: { id: string; name: string; maxPax: number; rsvp: { paxCount: number; soupChoices: string[] } | null }) {
+  function mapGuest(g: { id: string; name: string; maxPax: number; rsvp: { paxCount: number; menuChoices: string[] } | null }) {
     return {
       id: g.id,
       name: g.name,
       pax: g.rsvp?.paxCount ?? g.maxPax,
-      soupChoices: g.rsvp?.soupChoices ?? [],
+      menuChoices: g.rsvp?.menuChoices ?? [],
     };
   }
 
@@ -96,12 +96,12 @@ export async function getSeatingExport(clientId: string) {
     .filter((g) => g.invitationCategory.includes("RESEPSI"))
     .map(mapGuest);
 
-  const soupTotals: Record<string, number> = {};
+  const menuTotals: Record<string, number> = {};
   for (const g of [...mappedTables.flatMap((t) => t.guests), ...unassignedGuests]) {
-    for (const s of g.soupChoices) soupTotals[s] = (soupTotals[s] ?? 0) + 1;
+    for (const m of g.menuChoices) menuTotals[m] = (menuTotals[m] ?? 0) + 1;
   }
 
-  return { tables: mappedTables, unassignedGuests, soupTotals };
+  return { tables: mappedTables, unassignedGuests, menuTotals };
 }
 
 export async function assignGuestToTable(clientId: string, guestId: string, tableId: string | null) {

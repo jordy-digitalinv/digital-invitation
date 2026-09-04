@@ -3,7 +3,6 @@ import { canAccessClient } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/database/prisma";
 import { getSeatingExport } from "@/modules/tables/tables.service";
 import { formatDate } from "@/lib/utils";
-import { SOUP_LABEL } from "@/lib/soup";
 import { PrintButton } from "./PrintButton";
 
 interface Props {
@@ -38,7 +37,7 @@ export default async function SeatingPrintPage({ params }: Props) {
   const totalPax =
     exportData.tables.reduce((sum, t) => sum + t.guests.reduce((s, g) => s + g.pax, 0), 0) +
     exportData.unassignedGuests.reduce((s, g) => s + g.pax, 0);
-  const soupTotal = Object.values(exportData.soupTotals).reduce((s, n) => s + n, 0);
+  const menuTotal = Object.values(exportData.menuTotals).reduce((s, n) => s + n, 0);
 
   return (
     <div style={{ width: "100%", padding: "4mm 6mm", color: "#1c1917" }}>
@@ -107,7 +106,7 @@ export default async function SeatingPrintPage({ params }: Props) {
                           <p style={{ fontSize: "0.68rem", fontWeight: 600, margin: "0 0 1px" }}>{g.name}</p>
                           <ul style={{ margin: 0, padding: 0, listStyle: "none", fontSize: "0.62rem", color: "#44403c" }}>
                             {Array.from({ length: g.pax }, (_, i) => (
-                              <li key={i}>· {g.soupChoices[i] ? SOUP_LABEL[g.soupChoices[i]] ?? g.soupChoices[i] : "belum pilih"}</li>
+                              <li key={i}>· {g.menuChoices[i] || "belum pilih"}</li>
                             ))}
                           </ul>
                         </div>
@@ -139,9 +138,7 @@ export default async function SeatingPrintPage({ params }: Props) {
             {exportData.unassignedGuests.map((g) => (
               <div key={g.id} style={{ fontSize: "0.7rem" }}>
                 <strong>{g.name}</strong> ({g.pax} pax) —{" "}
-                {Array.from({ length: g.pax }, (_, i) =>
-                  g.soupChoices[i] ? SOUP_LABEL[g.soupChoices[i]] ?? g.soupChoices[i] : "belum pilih"
-                ).join(", ")}
+                {Array.from({ length: g.pax }, (_, i) => g.menuChoices[i] || "belum pilih").join(", ")}
               </div>
             ))}
           </div>
@@ -149,15 +146,15 @@ export default async function SeatingPrintPage({ params }: Props) {
       )}
 
       <div style={{ borderTop: "2px solid #1c1917", paddingTop: "8px", breakInside: "avoid" }}>
-        <h2 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "4px" }}>Rekap Total Soup</h2>
+        <h2 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "4px" }}>Rekap Total Menu</h2>
         <div style={{ display: "flex", gap: "18px", flexWrap: "wrap", fontSize: "0.78rem" }}>
-          {Object.entries(SOUP_LABEL).map(([key, label]) => (
-            <span key={key}>
-              {label}: <strong>{exportData.soupTotals[key] ?? 0}</strong>
+          {Object.entries(exportData.menuTotals).map(([name, total]) => (
+            <span key={name}>
+              {name}: <strong>{total}</strong>
             </span>
           ))}
           <span>
-            Total: <strong>{soupTotal}</strong>
+            Total: <strong>{menuTotal}</strong>
           </span>
         </div>
       </div>

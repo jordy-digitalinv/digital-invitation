@@ -30,6 +30,7 @@ export default async function ClientUsersPage({ params }: Props) {
     ...cu.user,
     canAccessSeating: cu.canAccessSeating,
     canAccessGuestPhotos: cu.canAccessGuestPhotos,
+    canAccessMenu: cu.canAccessMenu,
   }));
 
   return (

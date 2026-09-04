@@ -55,7 +55,10 @@ export const getClientBySlug = cache(async function getClientBySlug(slug: string
     where: { slug },
     include: {
       weddingProfile: true,
-      events: { orderBy: [{ sortOrder: "asc" }, { date: "asc" }, { timeStart: "asc" }] },
+      events: {
+        orderBy: [{ sortOrder: "asc" }, { date: "asc" }, { timeStart: "asc" }],
+        include: { menuItems: { orderBy: { sortOrder: "asc" } } },
+      },
       galleries: { orderBy: { sortOrder: "asc" } },
       theme: true,
       musics: { where: { isActive: true } },

@@ -13,11 +13,17 @@ export default async function RsvpPage({ params }: Props) {
   const hasAccess = await canAccessClient(clientId);
   if (!hasAccess) notFound();
 
-  const guests = await prisma.guest.findMany({
-    where: { clientId, isActive: true },
-    include: { rsvp: true },
-    orderBy: { name: "asc" },
-  });
+  const [guests, events] = await Promise.all([
+    prisma.guest.findMany({
+      where: { clientId, isActive: true },
+      include: { rsvp: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.event.findMany({
+      where: { clientId },
+      select: { id: true, type: true, isAyce: true, menuItems: { select: { id: true, name: true } } },
+    }),
+  ]);
 
   const guestList = guests.map((g) => ({
     id: g.id,
@@ -32,11 +38,11 @@ export default async function RsvpPage({ params }: Props) {
           status: g.rsvp.status as "HADIR" | "TIDAK_HADIR" | "PENDING",
           paxCount: g.rsvp.paxCount,
           message: g.rsvp.message,
-          soupChoices: g.rsvp.soupChoices,
+          menuChoices: g.rsvp.menuChoices,
           createdAt: g.rsvp.createdAt,
         }
       : null,
   }));
 
-  return <RsvpManager clientId={clientId} initialGuests={guestList} />;
+  return <RsvpManager clientId={clientId} initialGuests={guestList} events={events} />;
 }

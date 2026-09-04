@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     if (err instanceof Error && err.message === "PAX_EXCEEDS_MAX") {
       return apiError("Jumlah tamu melebihi batas maksimal", 400);
     }
-    if (err instanceof Error && err.message === "SOUP_CHOICES_REQUIRED") {
-      return apiError("Pilihan soup wajib diisi untuk semua tamu", 400);
+    if (err instanceof Error && err.message === "MENU_CHOICES_REQUIRED") {
+      return apiError("Pilihan menu wajib diisi untuk semua tamu", 400);
     }
     return apiError("Terjadi kesalahan server", 500);
   }

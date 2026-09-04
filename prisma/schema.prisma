@@ -56,6 +56,7 @@ model Client {
   gifts            Gift[]
   guests           Guest[]
   loveStories      LoveStory[]
+  menuItems        MenuItem[]
   musics           Music[]
   sections         Section[]
   tables           Table[]
@@ -73,6 +74,7 @@ model ClientUser {
   clientId             String
   canAccessSeating     Boolean @default(true)
   canAccessGuestPhotos Boolean @default(true)
+  canAccessMenu        Boolean @default(true)
   client               Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -117,25 +119,40 @@ model WeddingProfile {
 }
 
 model Event {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   clientId     String
   type         EventType
-  label        String    @default("")
+  label        String     @default("")
   labelEn      String?
   date         DateTime?
-  timeStart    String    @default("")
-  timeEnd      String    @default("")
-  venueName    String    @default("")
+  timeStart    String     @default("")
+  timeEnd      String     @default("")
+  venueName    String     @default("")
   venueNameEn  String?
-  venueAddress String    @default("")
-  mapsUrl      String    @default("")
-  mapsEmbed    String    @default("")
-  sortOrder    Int       @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  venueAddress String     @default("")
+  mapsUrl      String     @default("")
+  mapsEmbed    String     @default("")
+  sortOrder    Int        @default(0)
+  isAyce       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  client       Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  menuItems    MenuItem[]
 
   @@map("events")
+}
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  clientId  String
+  eventId   String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("menu_items")
 }
 
 model Gallery {
@@ -267,7 +284,7 @@ model Rsvp {
   paxCount    Int        @default(1)
   status      RsvpStatus @default(HADIR)
   message     String?
-  soupChoices SoupType[] @default([])
+  menuChoices String[]   @default([])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   guest       Guest      @relation(fields: [guestId], references: [id], onDelete: Cascade)
@@ -435,13 +452,6 @@ enum RsvpStatus {
 enum AttendanceType {
   CHURCH
   RECEPTION
-}
-
-enum SoupType {
-  ORIGINAL_KONBU
-  JAPANESE_BROTH
-  TOM_YUM
-  COLLAGEN
 }
 
 enum SectionKey {

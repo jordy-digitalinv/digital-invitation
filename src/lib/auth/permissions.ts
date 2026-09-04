@@ -49,12 +49,12 @@ async function getClientUserFlags(clientId: string) {
 
   const user = session.user as { id: string; role: string };
   if (user.role === UserRole.SUPERADMIN) {
-    return { canAccessSeating: true, canAccessGuestPhotos: true };
+    return { canAccessSeating: true, canAccessGuestPhotos: true, canAccessMenu: true };
   }
 
   return prisma.clientUser.findUnique({
     where: { userId_clientId: { userId: user.id, clientId } },
-    select: { canAccessSeating: true, canAccessGuestPhotos: true },
+    select: { canAccessSeating: true, canAccessGuestPhotos: true, canAccessMenu: true },
   });
 }
 
@@ -66,4 +66,9 @@ export async function canAccessSeating(clientId: string): Promise<boolean> {
 export async function canAccessGuestPhotos(clientId: string): Promise<boolean> {
   const flags = await getClientUserFlags(clientId);
   return flags?.canAccessGuestPhotos ?? false;
+}
+
+export async function canAccessMenu(clientId: string): Promise<boolean> {
+  const flags = await getClientUserFlags(clientId);
+  return flags?.canAccessMenu ?? false;
 }

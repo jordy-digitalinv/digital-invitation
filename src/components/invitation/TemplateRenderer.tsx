@@ -58,7 +58,7 @@ type InvitationClient = {
     groomPhoto: string | null; bridePhoto: string | null;
     showGroomPhoto: boolean; showBridePhoto: boolean;
   } | null;
-  events: { id: string; type: string; label: string; date: Date | null; timeStart: string; timeEnd: string; venueName: string; venueNameEn?: string | null; venueAddress: string; mapsUrl: string }[];
+  events: { id: string; type: string; label: string; date: Date | null; timeStart: string; timeEnd: string; venueName: string; venueNameEn?: string | null; venueAddress: string; mapsUrl: string; isAyce: boolean; menuItems: { id: string; name: string }[] }[];
   musics: { url: string; title: string }[];
   sections: { sectionKey: string; sortOrder: number }[];
   galleries: { id: string; url: string; type: string; sortOrder: number }[];

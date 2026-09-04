@@ -10,6 +10,7 @@ export type {
   Section,
   Guest,
   GuestVisit,
+  MenuItem,
   Rsvp,
   Wish,
   Gift,

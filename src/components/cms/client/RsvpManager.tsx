@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle, XCircle, Clock, Pencil, Trash2, X } from "lucide-react";
-import { SOUP_LABEL } from "@/lib/soup";
+import { findMenuEvent } from "@/lib/menu";
 import { invitationCategoryLabel } from "@/lib/categories";
 
 type RsvpStatus = "HADIR" | "TIDAK_HADIR" | "PENDING";
@@ -11,8 +11,15 @@ interface Rsvp {
   status: RsvpStatus;
   paxCount: number;
   message: string | null;
-  soupChoices: string[];
+  menuChoices: string[];
   createdAt: Date;
+}
+
+interface MenuEvent {
+  id: string;
+  type: string;
+  isAyce: boolean;
+  menuItems: { id: string; name: string }[];
 }
 
 const SIDE_LABEL: Record<string, string> = {
@@ -39,6 +46,7 @@ interface Guest {
 interface Props {
   clientId: string;
   initialGuests: Guest[];
+  events: MenuEvent[];
 }
 
 const STATUS_LABEL: Record<RsvpStatus, string> = {
@@ -61,17 +69,17 @@ const STATUS_ICON: Record<RsvpStatus, React.ElementType> = {
 
 type Filter = "all" | "HADIR" | "TIDAK_HADIR" | "PENDING";
 
-export function RsvpManager({ clientId, initialGuests }: Props) {
+export function RsvpManager({ clientId, initialGuests, events }: Props) {
   const [guests, setGuests] = useState<Guest[]>(initialGuests);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [sideFilter, setSideFilter] = useState<"ALL" | "GROOM" | "BRIDE">("ALL");
-  const [form, setForm] = useState<{ status: RsvpStatus; paxCount: number; message: string; soupChoices: Record<number, string> }>({
+  const [form, setForm] = useState<{ status: RsvpStatus; paxCount: number; message: string; menuChoices: Record<number, string> }>({
     status: "HADIR",
     paxCount: 1,
     message: "",
-    soupChoices: {},
+    menuChoices: {},
   });
   const [saving, setSaving] = useState(false);
 
@@ -89,19 +97,20 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
     .reduce((sum, g) => sum + (g.rsvp?.paxCount ?? 0), 0);
 
   function openEdit(guest: Guest) {
-    const existing = guest.rsvp?.soupChoices ?? [];
+    const existing = guest.rsvp?.menuChoices ?? [];
     setForm({
       status: guest.rsvpStatus,
       paxCount: guest.rsvp?.paxCount ?? 1,
       message: guest.rsvp?.message ?? "",
-      soupChoices: Object.fromEntries(existing.map((c, i) => [i, c])),
+      menuChoices: Object.fromEntries(existing.map((c, i) => [i, c])),
     });
     setEditingId(guest.id);
   }
 
   async function handleSave(guest: Guest) {
-    const needsSoup = form.status === "HADIR" && guest.invitationCategory.includes("RESEPSI");
-    const soupChoicesArray = Array.from({ length: form.paxCount }, (_, i) => form.soupChoices[i] ?? "");
+    const menuEvent = findMenuEvent(events, guest.invitationCategory);
+    const needsMenu = form.status === "HADIR" && !!menuEvent;
+    const menuChoicesArray = Array.from({ length: form.paxCount }, (_, i) => form.menuChoices[i] ?? "");
 
     setSaving(true);
     try {
@@ -113,7 +122,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
           status: form.status,
           paxCount: form.paxCount,
           message: form.message,
-          soupChoices: needsSoup ? soupChoicesArray : undefined,
+          menuChoices: needsMenu ? menuChoicesArray : undefined,
         }),
       });
       if (res.ok) {
@@ -128,7 +137,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                     status: form.status,
                     paxCount: form.paxCount,
                     message: form.message || null,
-                    soupChoices: needsSoup ? soupChoicesArray : [],
+                    menuChoices: needsMenu ? menuChoicesArray : [],
                     createdAt: rsvp.createdAt,
                   },
                 }
@@ -214,7 +223,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                 }`}
               >
                 {invitationCategoryLabel(cat)}
-                {cat.includes("RESEPSI") && " 🍲"}
+                {findMenuEvent(events, cat) && " 🍲"}
               </button>
             ))}
           </div>
@@ -246,9 +255,10 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
             {filtered.map((guest) => {
               const Icon = STATUS_ICON[guest.rsvpStatus];
               const isEditing = editingId === guest.id;
-              const needsSoup = isEditing && form.status === "HADIR" && guest.invitationCategory.includes("RESEPSI");
-              const soupChoicesArray = Array.from({ length: form.paxCount }, (_, i) => form.soupChoices[i] ?? "");
-              const soupIncomplete = needsSoup && soupChoicesArray.some((s) => !s);
+              const menuEvent = findMenuEvent(events, guest.invitationCategory);
+              const needsMenu = isEditing && form.status === "HADIR" && !!menuEvent;
+              const menuChoicesArray = Array.from({ length: form.paxCount }, (_, i) => form.menuChoices[i] ?? "");
+              const menuIncomplete = needsMenu && menuChoicesArray.some((s) => !s);
 
               return (
                 <div key={guest.id} className="px-6 py-4">
@@ -259,7 +269,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                           <p className="font-medium text-stone-800 text-sm">{guest.name}</p>
                           <span className="text-xs text-stone-400">
                             {invitationCategoryLabel(guest.invitationCategory)}
-                            {guest.invitationCategory.includes("RESEPSI") && " 🍲"}
+                            {menuEvent && " 🍲"}
                           </span>
                         </div>
                         <button
@@ -306,22 +316,22 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                           />
                         </div>
                       </div>
-                      {needsSoup && (
+                      {needsMenu && (
                         <div>
-                          <label className="block text-xs text-stone-500 mb-1">Pilihan Soup per Tamu</label>
+                          <label className="block text-xs text-stone-500 mb-1">Pilihan Menu per Tamu</label>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {soupChoicesArray.map((choice, i) => (
+                            {menuChoicesArray.map((choice, i) => (
                               <select
                                 key={i}
                                 value={choice}
                                 onChange={(e) =>
-                                  setForm((p) => ({ ...p, soupChoices: { ...p.soupChoices, [i]: e.target.value } }))
+                                  setForm((p) => ({ ...p, menuChoices: { ...p.menuChoices, [i]: e.target.value } }))
                                 }
                                 className="border border-stone-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-stone-300"
                               >
-                                <option value="">Tamu {i + 1}: pilih soup</option>
-                                {Object.entries(SOUP_LABEL).map(([key, label]) => (
-                                  <option key={key} value={key}>{label}</option>
+                                <option value="">Tamu {i + 1}: pilih menu</option>
+                                {menuEvent!.menuItems.map((item) => (
+                                  <option key={item.id} value={item.name}>{item.name}</option>
                                 ))}
                               </select>
                             ))}
@@ -331,7 +341,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSave(guest)}
-                          disabled={saving || soupIncomplete}
+                          disabled={saving || menuIncomplete}
                           className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                           {saving ? "Menyimpan..." : "Simpan"}
@@ -352,7 +362,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                           {guest.phone || "Tidak ada no. HP"}
                           {" · "}
                           {invitationCategoryLabel(guest.invitationCategory)}
-                          {guest.invitationCategory.includes("RESEPSI") && " 🍲"}
+                          {menuEvent && " 🍲"}
                         </p>
                       </div>
                       {guest.side && (
@@ -363,7 +373,7 @@ export function RsvpManager({ clientId, initialGuests }: Props) {
                       {guest.rsvp && (
                         <p className="text-xs text-stone-400 hidden sm:block">
                           {guest.rsvp.paxCount} pax
-                          {guest.rsvp.soupChoices.length > 0 && ` · ${guest.rsvp.soupChoices.map((s) => SOUP_LABEL[s] ?? s).join(", ")}`}
+                          {guest.rsvp.menuChoices.length > 0 && ` · ${guest.rsvp.menuChoices.join(", ")}`}
                           {guest.rsvp.message && ` · "${guest.rsvp.message}"`}
                         </p>
                       )}

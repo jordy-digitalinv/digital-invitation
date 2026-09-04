@@ -1,13 +1,11 @@
 import { z } from "zod";
 
-export const soupTypeSchema = z.enum(["ORIGINAL_KONBU", "JAPANESE_BROTH", "TOM_YUM", "COLLAGEN"]);
-
 export const rsvpSchema = z.object({
   token: z.string().min(1),
   name: z.string().min(1, "Nama wajib diisi"),
   paxCount: z.number().int().min(1),
   status: z.enum(["HADIR", "TIDAK_HADIR"]),
-  soupChoices: z.array(soupTypeSchema).optional(),
+  menuChoices: z.array(z.string()).optional(),
 });
 
 export const wishSchema = z.object({

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/database/prisma";
+import { getGuestMenuEvent } from "@/modules/menu/menu.service";
 import type { RsvpInput, WishInput } from "./rsvp.schema";
 
 export async function submitRsvp(data: RsvpInput) {
@@ -15,11 +16,15 @@ export async function submitRsvp(data: RsvpInput) {
     throw new Error("PAX_EXCEEDS_MAX");
   }
 
-  const needsSoupChoice = data.status === "HADIR" && guest.invitationCategory.includes("RESEPSI");
-  if (needsSoupChoice && data.soupChoices?.length !== data.paxCount) {
-    throw new Error("SOUP_CHOICES_REQUIRED");
+  const menuEvent = await getGuestMenuEvent(guest.clientId, guest.invitationCategory);
+  const needsMenuChoice = data.status === "HADIR" && !!menuEvent;
+  if (needsMenuChoice) {
+    const validNames = new Set(menuEvent!.menuItems.map((i) => i.name));
+    if (data.menuChoices?.length !== data.paxCount || data.menuChoices.some((c) => !validNames.has(c))) {
+      throw new Error("MENU_CHOICES_REQUIRED");
+    }
   }
-  const soupChoices = needsSoupChoice ? data.soupChoices! : [];
+  const menuChoices = needsMenuChoice ? data.menuChoices! : [];
 
   const rsvp = await prisma.rsvp.upsert({
     where: { guestId: guest.id },
@@ -27,7 +32,7 @@ export async function submitRsvp(data: RsvpInput) {
       name: data.name,
       paxCount: data.paxCount,
       status: data.status,
-      soupChoices,
+      menuChoices,
     },
     create: {
       guestId: guest.id,
@@ -35,7 +40,7 @@ export async function submitRsvp(data: RsvpInput) {
       name: data.name,
       paxCount: data.paxCount,
       status: data.status,
-      soupChoices,
+      menuChoices,
     },
   });
 

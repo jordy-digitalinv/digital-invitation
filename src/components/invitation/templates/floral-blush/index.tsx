@@ -12,6 +12,7 @@ import { BarcodeSection, getEventVenueName } from "../../sections/BarcodeSection
 import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
 import { getEventsForGuestCategory, EVENT_TYPE_LABELS } from "@/lib/categories";
+import { findMenuEvent } from "@/lib/menu";
 import type { Rsvp } from "@/types/prisma.types";
 
 interface Guest {
@@ -41,7 +42,8 @@ interface TemplateProps {
     } | null;
     events: {
       id: string; type: string; label: string; date: Date | null;
-      timeStart: string; timeEnd: string; venueName: string; venueAddress: string; mapsUrl: string;
+      timeStart: string; timeEnd: string; venueName: string; venueAddress: string; mapsUrl: string; isAyce: boolean;
+      menuItems: { id: string; name: string }[];
     }[];
     musics: { url: string; title: string }[];
     sections: { sectionKey: string; sortOrder: number }[];
@@ -301,7 +303,7 @@ export default function FloralBlushTemplate({ guest, client, token }: TemplatePr
               <SectionHead eyebrow="Konfirmasi" gold={rose} fontH={fontH}>RSVP</SectionHead>
               {token && guest ? (
                 <RsvpForm clientId={client.id} guest={guest} token={token} rose={rose}
-                  needsSoup={(guest.invitationCategory ?? "").includes("RESEPSI")}
+                  menuItems={findMenuEvent(client.events, guest.invitationCategory ?? "")?.menuItems ?? []}
                   onConfirmed={setRsvpStatus} />
               ) : (
                 <p className="text-center text-sm" style={{ color: DEF.muted }}>RSVP tersedia melalui link undangan personal.</p>
@@ -361,9 +363,9 @@ function SectionHead({ eyebrow, gold, fontH, children }: { eyebrow: string; gold
 }
 
 function RsvpForm({
-  clientId, guest, token, rose, needsSoup, onConfirmed,
+  clientId, guest, token, rose, menuItems, onConfirmed,
 }: {
-  clientId: string; guest: Guest; token: string; rose: string; needsSoup: boolean;
+  clientId: string; guest: Guest; token: string; rose: string; menuItems: { id: string; name: string }[];
   onConfirmed: (s: string) => void;
 }) {
   const [status, setStatus] = useState<"HADIR" | "TIDAK_HADIR">("HADIR");
@@ -371,7 +373,7 @@ function RsvpForm({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(!!guest.rsvp);
-  const [soups, setSoups] = useState<string[]>([]);
+  const [menuChoices, setMenuChoices] = useState<string[]>([]);
 
   async function submit() {
     setSending(true);
@@ -382,7 +384,7 @@ function RsvpForm({
         token, clientId, guestId: guest.id,
         name: guest.name, paxCount: status === "HADIR" ? pax : 0,
         status, message: message || undefined,
-        soupChoices: needsSoup && status === "HADIR" ? soups.slice(0, pax).filter(Boolean) : undefined,
+        menuChoices: menuItems.length > 0 && status === "HADIR" ? menuChoices.slice(0, pax).filter(Boolean) : undefined,
       }),
     });
     setDone(true);
@@ -423,16 +425,15 @@ function RsvpForm({
           ))}
         </select>
       )}
-      {needsSoup && status === "HADIR" && (
+      {menuItems.length > 0 && status === "HADIR" && (
         [...Array(pax)].map((_, i) => (
-          <select key={i} value={soups[i] ?? ""} onChange={(e) => {
-            const next = [...soups]; next[i] = e.target.value; setSoups(next);
+          <select key={i} value={menuChoices[i] ?? ""} onChange={(e) => {
+            const next = [...menuChoices]; next[i] = e.target.value; setMenuChoices(next);
           }} className={inputCls} style={inputStyle}>
-            <option value="">Pilih soup untuk tamu {i + 1}</option>
-            <option value="ORIGINAL_KONBU">Original Konbu</option>
-            <option value="JAPANESE_BROTH">Japanese Broth</option>
-            <option value="TOM_YUM">Tom Yum</option>
-            <option value="COLLAGEN">Collagen</option>
+            <option value="">Pilih menu untuk tamu {i + 1}</option>
+            {menuItems.map((item) => (
+              <option key={item.id} value={item.name}>{item.name}</option>
+            ))}
           </select>
         ))
       )}

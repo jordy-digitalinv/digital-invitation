@@ -11,6 +11,7 @@ import { BarcodeSection, getEventVenueName } from "../../sections/BarcodeSection
 import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
 import { getEventsForGuestCategory, EVENT_TYPE_LABELS } from "@/lib/categories";
+import { findMenuEvent } from "@/lib/menu";
 import type { Rsvp } from "@/types/prisma.types";
 
 interface Guest {
@@ -40,7 +41,8 @@ interface TemplateProps {
     } | null;
     events: {
       id: string; type: string; label: string; date: Date | null;
-      timeStart: string; timeEnd: string; venueName: string; venueAddress: string; mapsUrl: string;
+      timeStart: string; timeEnd: string; venueName: string; venueAddress: string; mapsUrl: string; isAyce: boolean;
+      menuItems: { id: string; name: string }[];
     }[];
     musics: { url: string; title: string }[];
     sections: { sectionKey: string; sortOrder: number }[];
@@ -321,7 +323,7 @@ export default function ClassicElegantTemplate({ guest, client, token }: Templat
               {token && guest ? (
                 <RsvpForm clientId={client.id} guest={guest} token={token}
                   gold={gold} surface={surface} text={text} fontB={fontB}
-                  needsSoup={(guest.invitationCategory ?? "").includes("RESEPSI")}
+                  menuItems={findMenuEvent(client.events, guest.invitationCategory ?? "")?.menuItems ?? []}
                   onConfirmed={setRsvpStatus} />
               ) : (
                 <p className="text-center text-sm" style={{ color: DEF.muted }}>
@@ -428,17 +430,17 @@ function Cover({
 }
 
 function RsvpForm({
-  clientId, guest, token, gold, surface, text, fontB, needsSoup, onConfirmed,
+  clientId, guest, token, gold, surface, text, fontB, menuItems, onConfirmed,
 }: {
   clientId: string; guest: Guest; token: string; gold: string; surface: string; text: string; fontB: string;
-  needsSoup: boolean; onConfirmed: (s: string) => void;
+  menuItems: { id: string; name: string }[]; onConfirmed: (s: string) => void;
 }) {
   const [status, setStatus] = useState<"HADIR" | "TIDAK_HADIR">("HADIR");
   const [pax, setPax] = useState(1);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(!!guest.rsvp);
-  const [soups, setSoups] = useState<string[]>([]);
+  const [menuChoices, setMenuChoices] = useState<string[]>([]);
 
   async function submit() {
     setSending(true);
@@ -449,7 +451,7 @@ function RsvpForm({
         token, clientId, guestId: guest.id,
         name: guest.name, paxCount: status === "HADIR" ? pax : 0,
         status, message: message || undefined,
-        soupChoices: needsSoup && status === "HADIR" ? soups.slice(0, pax) : undefined,
+        menuChoices: menuItems.length > 0 && status === "HADIR" ? menuChoices.slice(0, pax) : undefined,
       }),
     });
     setDone(true);
@@ -492,17 +494,16 @@ function RsvpForm({
         </select>
       )}
 
-      {needsSoup && status === "HADIR" && (
+      {menuItems.length > 0 && status === "HADIR" && (
         <div className="space-y-2">
           {[...Array(pax)].map((_, i) => (
-            <select key={i} value={soups[i] ?? ""} onChange={(e) => {
-              const next = [...soups]; next[i] = e.target.value; setSoups(next);
+            <select key={i} value={menuChoices[i] ?? ""} onChange={(e) => {
+              const next = [...menuChoices]; next[i] = e.target.value; setMenuChoices(next);
             }} className={inputCls} style={inputStyle}>
-              <option value="">Pilih soup untuk tamu {i + 1}</option>
-              <option value="ORIGINAL_KONBU">Original Konbu</option>
-              <option value="JAPANESE_BROTH">Japanese Broth</option>
-              <option value="TOM_YUM">Tom Yum</option>
-              <option value="COLLAGEN">Collagen</option>
+              <option value="">Pilih menu untuk tamu {i + 1}</option>
+              {menuItems.map((item) => (
+                <option key={item.id} value={item.name}>{item.name}</option>
+              ))}
             </select>
           ))}
         </div>

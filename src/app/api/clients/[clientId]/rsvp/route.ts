@@ -1,7 +1,7 @@
 import { canAccessClient, requireAuth } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/database/prisma";
 import { apiError, apiSuccess } from "@/lib/utils";
-import { soupTypeSchema } from "@/modules/rsvp/rsvp.schema";
+import { getGuestMenuEvent } from "@/modules/menu/menu.service";
 import { z } from "zod";
 
 const rsvpAdminSchema = z.object({
@@ -9,7 +9,7 @@ const rsvpAdminSchema = z.object({
   status: z.enum(["HADIR", "TIDAK_HADIR", "PENDING"]),
   paxCount: z.number().int().min(1).default(1),
   message: z.string().optional(),
-  soupChoices: z.array(soupTypeSchema).optional(),
+  menuChoices: z.array(z.string()).optional(),
 });
 
 interface Params {
@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: Params) {
     const parsed = rsvpAdminSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.issues[0]?.message || "Validasi gagal");
 
-    const { guestId, status, paxCount, message, soupChoices } = parsed.data;
+    const { guestId, status, paxCount, message, menuChoices } = parsed.data;
 
     const guest = await prisma.guest.findUnique({
       where: { id: guestId, clientId },
@@ -35,11 +35,12 @@ export async function POST(req: Request, { params }: Params) {
     });
     if (!guest) return apiError("Tamu tidak ditemukan", 404);
 
-    const needsSoupChoice = status === "HADIR" && guest.invitationCategory.includes("RESEPSI");
-    if (needsSoupChoice && soupChoices?.length !== paxCount) {
-      return apiError("Pilihan soup wajib diisi untuk semua tamu", 400);
+    const menuEvent = await getGuestMenuEvent(clientId, guest.invitationCategory);
+    const needsMenuChoice = status === "HADIR" && !!menuEvent;
+    if (needsMenuChoice && menuChoices?.length !== paxCount) {
+      return apiError("Pilihan menu wajib diisi untuk semua tamu", 400);
     }
-    const resolvedSoupChoices = needsSoupChoice ? soupChoices! : [];
+    const resolvedMenuChoices = needsMenuChoice ? menuChoices! : [];
 
     if (status === "PENDING") {
       await prisma.rsvp.deleteMany({ where: { guestId, clientId } });
@@ -52,7 +53,7 @@ export async function POST(req: Request, { params }: Params) {
 
     const rsvp = await prisma.rsvp.upsert({
       where: { guestId },
-      update: { status, paxCount, message: message || null, soupChoices: resolvedSoupChoices },
+      update: { status, paxCount, message: message || null, menuChoices: resolvedMenuChoices },
       create: {
         guestId,
         clientId,
@@ -60,7 +61,7 @@ export async function POST(req: Request, { params }: Params) {
         status,
         paxCount,
         message: message || null,
-        soupChoices: resolvedSoupChoices,
+        menuChoices: resolvedMenuChoices,
       },
     });
 

@@ -33,8 +33,3 @@ export async function getGuestMenuEvent(clientId: string, invitationCategory: st
   });
   return findMenuEvent(events, invitationCategory);
 }
-
-export async function hasAyceEvents(clientId: string) {
-  const count = await prisma.event.count({ where: { clientId, isAyce: true } });
-  return count > 0;
-}

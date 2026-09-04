@@ -106,10 +106,14 @@ export function EventsManager({ clientId, clientType, initialEvents }: Props) {
     setLoading(true);
     setError("");
 
+    // isAyce nggak ada di form Acara (diatur dari tab Menu) — pertahankan nilai yang sudah ada.
+    const existing = eventId ? events.find((e) => e.id === eventId) : undefined;
+    const isAyce = existing?.isAyce ?? data.isAyce;
+
     const res = await fetch(`/api/clients/${clientId}/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, id: eventId }),
+      body: JSON.stringify({ ...data, isAyce, id: eventId }),
     });
 
     const json = await res.json();
@@ -159,13 +163,8 @@ export function EventsManager({ clientId, clientType, initialEvents }: Props) {
             onClick={() => setOpenForm(openForm === event.id ? null : event.id)}
           >
             <div>
-              <p className="font-medium text-stone-800 text-sm flex items-center gap-2">
+              <p className="font-medium text-stone-800 text-sm">
                 {event.label || EVENT_LABELS[event.type] || event.type}
-                {event.isAyce && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                    AYCE
-                  </span>
-                )}
               </p>
               <p className="text-xs text-stone-400 mt-0.5">
                 {event.date ? formatDate(event.date) : "Tanggal belum diatur"}{" "}
@@ -237,13 +236,12 @@ function EventForm({
   onCancel?: () => void;
   loading?: boolean;
 }) {
-  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<EventInput>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<EventInput>({
     resolver: zodResolver(eventSchema) as any,
-    defaultValues: defaultValues ?? { type: (eventOptions[0]?.value ?? "AKAD") as EventInput["type"], sortOrder: 0, isAyce: false },
+    defaultValues: defaultValues ?? { type: (eventOptions[0]?.value ?? "AKAD") as EventInput["type"], sortOrder: 0 },
   });
 
   const selectedType = useWatch({ control, name: "type" }) as string;
-  const isAyce = useWatch({ control, name: "isAyce" });
   const ph = VENUE_PLACEHOLDERS[selectedType] ?? VENUE_PLACEHOLDERS.RESEPSI;
 
   return (
@@ -301,24 +299,6 @@ function EventForm({
       <div>
         <label className={labelClass}>Link Google Maps</label>
         <input {...register("mapsUrl")} placeholder={ph.maps} className={inputClass} />
-      </div>
-
-      <div className="flex items-center justify-between bg-stone-50 rounded-lg px-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-stone-700">AYCE (All You Can Eat)</p>
-          <p className="text-xs text-stone-400 mt-0.5">
-            Aktifkan kalau tamu perlu memilih menu makanan sendiri untuk acara ini. Tab Menu akan muncul di navbar client.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setValue("isAyce", !isAyce, { shouldDirty: true })}
-          className={`relative shrink-0 w-11 h-6 rounded-full transition-colors focus:outline-none ${isAyce ? "bg-amber-500" : "bg-stone-300"}`}
-        >
-          <div
-            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isAyce ? "left-5" : "left-0.5"}`}
-          />
-        </button>
       </div>
 
       <div className="flex gap-3">

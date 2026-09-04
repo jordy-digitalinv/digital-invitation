@@ -25,7 +25,7 @@ export default async function MenuPage({ params }: Props) {
   return (
     <div className="max-w-2xl">
       <h2 className="text-lg font-semibold text-stone-800 mb-4">Menu Makanan</h2>
-      <MenuManager clientId={clientId} events={events} initialMenuItems={menuItems} />
+      <MenuManager clientId={clientId} initialEvents={events} initialMenuItems={menuItems} />
     </div>
   );
 }

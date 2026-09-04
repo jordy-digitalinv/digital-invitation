@@ -44,12 +44,9 @@ const STAFF_TABS = [
 ];
 
 function getTabs(role: string | undefined, seatingAllowed: boolean, guestPhotosAllowed: boolean, menuAllowed: boolean) {
+  if (role === "SUPERADMIN") return SUPERADMIN_TABS;
   if (role === "STAFF") return STAFF_TABS;
-  // Menu tab visibility is a feature gate (does this client even have an AYCE event?),
-  // not a permission — so it applies even to SUPERADMIN, unlike seating/guest-photos
-  // which are pure per-user permissions superadmin already always passes.
-  const tabs = role === "SUPERADMIN" ? SUPERADMIN_TABS : BASE_TABS;
-  return tabs.filter((tab) => {
+  return BASE_TABS.filter((tab) => {
     if (tab.path === "/seating") return seatingAllowed;
     if (tab.path === "/guest-photos") return guestPhotosAllowed;
     if (tab.path === "/menu") return menuAllowed;
@@ -62,7 +59,7 @@ export function ClientNav({
   role,
   seatingAllowed = true,
   guestPhotosAllowed = true,
-  menuAllowed = false,
+  menuAllowed = true,
 }: {
   client: Client;
   role?: string;

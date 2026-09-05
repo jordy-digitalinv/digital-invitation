@@ -17,6 +17,7 @@ const DEFAULT_THEME = {
   fontBody: "Jost",
   showMap: true,
   barcodeVisibility: "AFTER_RSVP" as const,
+  barcodeMode: "SEPARATE" as const,
 };
 
 export default async function ThemePage({ params }: Props) {
@@ -39,6 +40,7 @@ export default async function ThemePage({ params }: Props) {
         showMap: theme.showMap ?? true,
         autoScroll: theme.autoScroll ?? true,
         barcodeVisibility: (theme.barcodeVisibility ?? "AFTER_RSVP") as "ALWAYS" | "AFTER_RSVP" | "HIDDEN",
+        barcodeMode: (theme.barcodeMode ?? "SEPARATE") as "SINGLE" | "SEPARATE",
       }
     : DEFAULT_THEME;
 

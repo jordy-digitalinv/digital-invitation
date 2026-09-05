@@ -85,7 +85,12 @@ interface EventLike {
   type: string;
 }
 
-const RECEPTION_EVENT_TYPES = new Set(["RESEPSI", "AFTER_PARTY"]);
+export const RECEPTION_EVENT_TYPES = new Set(["RESEPSI", "AFTER_PARTY"]);
+
+/** Does this guest's category string reference any reception-equivalent event (Resepsi or After Party)? */
+export function categoryIncludesReception(invitationCategory: string): boolean {
+  return [...RECEPTION_EVENT_TYPES].some((type) => invitationCategory.includes(type));
+}
 
 /**
  * Hanya tampilkan event yang relevan untuk kategori tamu —
@@ -98,7 +103,7 @@ export function getEventsForGuestCategory<T extends EventLike>(
 ): T[] {
   if (!invitationCategory) return events;
 
-  const includesReception = invitationCategory.includes("RESEPSI");
+  const includesReception = categoryIncludesReception(invitationCategory);
   const ceremonyType = invitationCategory.startsWith("AKAD")
     ? "AKAD"
     : invitationCategory.startsWith("PEMBERKATAN")

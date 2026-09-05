@@ -289,6 +289,7 @@ interface Theme {
   showMap: boolean;
   autoScroll?: boolean | null;
   barcodeVisibility: "ALWAYS" | "AFTER_RSVP" | "HIDDEN";
+  barcodeMode: "SINGLE" | "SEPARATE";
 }
 
 interface Props {
@@ -495,6 +496,23 @@ export function ThemeEditor({ clientId, initialTheme }: Props) {
                   <option value="AFTER_RSVP">Muncul setelah tamu konfirmasi kehadiran (RSVP)</option>
                   <option value="ALWAYS">Selalu tampil tanpa perlu RSVP terlebih dahulu</option>
                   <option value="HIDDEN">Tidak tampilkan barcode sama sekali</option>
+                </select>
+              </div>
+
+              <div className="border-t border-stone-100 pt-4">
+                <div className="mb-2">
+                  <p className="text-sm font-medium text-stone-700">Mode Barcode Tamu</p>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    Setelah diganti, pakai tombol &quot;Regenerate Semua Barcode&quot; di tab Tamu supaya tamu yang sudah ada ikut menyesuaikan.
+                  </p>
+                </div>
+                <select
+                  value={theme.barcodeMode}
+                  onChange={(e) => update("barcodeMode", e.target.value as Theme["barcodeMode"])}
+                  className={inputClass}
+                >
+                  <option value="SEPARATE">Terpisah — barcode beda untuk tamu Akad/Ibadah vs Resepsi</option>
+                  <option value="SINGLE">Satu barcode — berlaku untuk semua acara yang tamu itu diundang</option>
                 </select>
               </div>
 

@@ -236,12 +236,14 @@ function EventForm({
   onCancel?: () => void;
   loading?: boolean;
 }) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm<EventInput>({
+  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<EventInput>({
     resolver: zodResolver(eventSchema) as any,
     defaultValues: defaultValues ?? { type: (eventOptions[0]?.value ?? "AKAD") as EventInput["type"], sortOrder: 0 },
   });
 
   const selectedType = useWatch({ control, name: "type" }) as string;
+  const timeEnd = useWatch({ control, name: "timeEnd" });
+  const isOpenEnded = timeEnd === "Selesai";
   const ph = VENUE_PLACEHOLDERS[selectedType] ?? VENUE_PLACEHOLDERS.RESEPSI;
 
   return (
@@ -275,7 +277,21 @@ function EventForm({
           </div>
           <div>
             <label className={labelClass}>Jam Selesai</label>
-            <input type="time" {...register("timeEnd")} className={inputClass} />
+            <input
+              type="time"
+              {...register("timeEnd")}
+              disabled={isOpenEnded}
+              className={`${inputClass} disabled:bg-stone-100 disabled:text-stone-400`}
+            />
+            <label className="flex items-center gap-1.5 mt-1.5 text-xs text-stone-500 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isOpenEnded}
+                onChange={(e) => setValue("timeEnd", e.target.checked ? "Selesai" : "", { shouldDirty: true })}
+                className="accent-stone-700"
+              />
+              Sampai selesai (tanpa jam pasti)
+            </label>
           </div>
         </div>
       </div>

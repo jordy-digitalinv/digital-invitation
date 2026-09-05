@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Camera, CameraOff, Users, UserCheck, QrCode, RefreshCw, Clock, Download, Search } from "lucide-react";
-import { invitationCategoryLabel } from "@/lib/categories";
+import { invitationCategoryLabel, RECEPTION_EVENT_TYPES } from "@/lib/categories";
 
 interface TableInfo {
   code: string;
@@ -51,14 +51,13 @@ interface Props {
   initialStats: Stats;
   staffMode?: boolean;
   events?: EventInfo[];
+  barcodeMode?: "SINGLE" | "SEPARATE";
 }
-
-const RECEPTION_TYPES = new Set(["RESEPSI", "AFTER_PARTY"]);
 
 function buildScanLabels(events?: EventInfo[]): Record<string, string> {
   if (!events?.length) return { CHURCH: "Upacara", RECEPTION: "Resepsi" };
-  const church = events.find((e) => !RECEPTION_TYPES.has(e.type));
-  const reception = events.find((e) => RECEPTION_TYPES.has(e.type));
+  const church = events.find((e) => !RECEPTION_EVENT_TYPES.has(e.type));
+  const reception = events.find((e) => RECEPTION_EVENT_TYPES.has(e.type));
   return {
     CHURCH: church?.venueName || church?.label || "Upacara",
     RECEPTION: reception?.venueName || reception?.label || "Resepsi",
@@ -119,14 +118,15 @@ type ScanResult =
   | { type: "outsideWindow"; message: string }
   | { type: "error"; message: string };
 
-export function AttendanceManager({ clientId, initialAttendances, initialStats, staffMode = false, events }: Props) {
+export function AttendanceManager({ clientId, initialAttendances, initialStats, staffMode = false, events, barcodeMode = "SEPARATE" }: Props) {
   const [attendances, setAttendances] = useState<AttendanceRow[]>(initialAttendances);
   const [stats, setStats] = useState<Stats>(initialStats);
   const [activeTab, setActiveTab] = useState<"CHURCH" | "RECEPTION">("CHURCH");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const scanLabels = buildScanLabels(events);
-  const hasReceptionEvent = events?.some((e) => RECEPTION_TYPES.has(e.type)) ?? false;
+  const scanLabels = barcodeMode === "SINGLE" ? { CHURCH: "Presensi", RECEPTION: "Presensi" } : buildScanLabels(events);
+  // Mode SINGLE cuma punya 1 tiket per tamu — selalu 1 list, walau client punya event bertipe resepsi.
+  const hasReceptionEvent = barcodeMode !== "SINGLE" && (events?.some((e) => RECEPTION_EVENT_TYPES.has(e.type)) ?? false);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [loadingPax, setLoadingPax] = useState<string | null>(null);

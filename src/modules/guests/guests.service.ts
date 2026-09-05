@@ -2,6 +2,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/database/prisma";
 import { generateGuestToken, generateInvitationUrl } from "@/lib/token";
+import { categoryIncludesReception } from "@/lib/categories";
 import { randomBytes } from "crypto";
 import type { CreateGuestInput, UpdateGuestInput, GuestSideValue } from "./guests.schema";
 
@@ -11,8 +12,15 @@ function generateBarcode(): string {
   return randomBytes(10).toString("base64url");
 }
 
-function needsBarcodeReception(category: string): boolean {
-  return category.includes("RESEPSI");
+async function getBarcodeMode(clientId: string): Promise<string> {
+  const theme = await prisma.theme.findUnique({ where: { clientId }, select: { barcodeMode: true } });
+  return theme?.barcodeMode ?? "SEPARATE";
+}
+
+// Mode SINGLE: satu tiket buat semua acara tamu itu — barcode kedua nggak pernah dibuat.
+function needsBarcodeReception(category: string, barcodeMode: string): boolean {
+  if (barcodeMode === "SINGLE") return false;
+  return categoryIncludesReception(category);
 }
 
 export async function getGuests(clientId: string) {
@@ -81,8 +89,9 @@ export async function createGuest(
 ) {
   const token = generateGuestToken(data.name);
   const invitationUrl = generateInvitationUrl(APP_URL, clientSlug, token);
+  const barcodeMode = await getBarcodeMode(clientId);
   const barcodeChurch = generateBarcode();
-  const barcodeReception = needsBarcodeReception(data.invitationCategory) ? generateBarcode() : null;
+  const barcodeReception = needsBarcodeReception(data.invitationCategory, barcodeMode) ? generateBarcode() : null;
 
   return prisma.guest.create({
     data: {
@@ -106,11 +115,14 @@ export async function importGuests(
   clientSlug: string
 ) {
   // Fallback kategori untuk baris tanpa kategori: event pertama client.
-  const firstEvent = await prisma.event.findFirst({
-    where: { clientId },
-    orderBy: [{ sortOrder: "asc" }, { date: "asc" }],
-    select: { type: true },
-  });
+  const [firstEvent, barcodeMode] = await Promise.all([
+    prisma.event.findFirst({
+      where: { clientId },
+      orderBy: [{ sortOrder: "asc" }, { date: "asc" }],
+      select: { type: true },
+    }),
+    getBarcodeMode(clientId),
+  ]);
   const fallbackCategory = firstEvent?.type ?? "";
 
   const rows = guests.map((g) => {
@@ -124,7 +136,7 @@ export async function importGuests(
       invitationCategory: category,
       side: g.side || null,
       barcodeChurch: generateBarcode(),
-      barcodeReception: needsBarcodeReception(category) ? generateBarcode() : null,
+      barcodeReception: needsBarcodeReception(category, barcodeMode) ? generateBarcode() : null,
       maxPax: g.maxPax ?? 2,
       guestToken: token,
       invitationUrl,
@@ -156,13 +168,38 @@ export async function regenerateGuestBarcodes(id: string) {
   const guest = await prisma.guest.findUnique({ where: { id } });
   if (!guest) throw new Error("Guest not found");
 
+  const barcodeMode = await getBarcodeMode(guest.clientId);
   return prisma.guest.update({
     where: { id },
     data: {
       barcodeChurch: generateBarcode(),
-      barcodeReception: needsBarcodeReception(guest.invitationCategory) ? generateBarcode() : null,
+      barcodeReception: needsBarcodeReception(guest.invitationCategory, barcodeMode) ? generateBarcode() : null,
     },
   });
+}
+
+// Dipakai pas admin ganti Mode Barcode (SINGLE/SEPARATE) di client yang sudah punya tamu —
+// biar semua tamu lama ikut nyocok ke mode barunya, bukan cuma tamu baru.
+export async function regenerateAllGuestBarcodes(clientId: string) {
+  const barcodeMode = await getBarcodeMode(clientId);
+  const guests = await prisma.guest.findMany({
+    where: { clientId },
+    select: { id: true, invitationCategory: true },
+  });
+
+  await Promise.all(
+    guests.map((g) =>
+      prisma.guest.update({
+        where: { id: g.id },
+        data: {
+          barcodeChurch: generateBarcode(),
+          barcodeReception: needsBarcodeReception(g.invitationCategory, barcodeMode) ? generateBarcode() : null,
+        },
+      })
+    )
+  );
+
+  return guests.length;
 }
 
 export async function markGuestOpened(

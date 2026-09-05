@@ -13,11 +13,13 @@ export default async function AttendancePage({ params }: Props) {
   const role = (session?.user as any)?.role as string | undefined;
   const isStaff = role === "STAFF";
 
-  const [attendances, stats, events] = await Promise.all([
+  const [attendances, stats, events, theme] = await Promise.all([
     getAttendances(clientId),
     getAttendanceStats(clientId),
     prisma.event.findMany({ where: { clientId }, select: { type: true, label: true, venueName: true } }),
+    prisma.theme.findUnique({ where: { clientId }, select: { barcodeMode: true } }),
   ]);
+  const barcodeMode = (theme?.barcodeMode ?? "SEPARATE") as "SINGLE" | "SEPARATE";
 
   const serialized = attendances.map((a) => ({
     ...a,
@@ -40,6 +42,7 @@ export default async function AttendancePage({ params }: Props) {
         initialStats={stats}
         staffMode={isStaff}
         events={events}
+        barcodeMode={barcodeMode}
       />
     </div>
   );

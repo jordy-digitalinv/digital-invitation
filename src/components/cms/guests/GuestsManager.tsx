@@ -70,6 +70,7 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fixingUrls, setFixingUrls] = useState(false);
+  const [regeneratingAll, setRegeneratingAll] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sideFilter, setSideFilter] = useState<"ALL" | "GROOM" | "BRIDE">("ALL");
@@ -228,6 +229,20 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
     }
   }
 
+  async function regenerateAllBarcodes() {
+    if (!confirm("Generate ulang barcode SEMUA tamu? Semua barcode lama tidak akan berlaku lagi.")) return;
+    setRegeneratingAll(true);
+    const res = await fetch(`/api/clients/${clientId}/guests/regenerate-barcodes`, { method: "POST" });
+    setRegeneratingAll(false);
+    if (res.ok) {
+      const { count } = await res.json();
+      alert(`Barcode ${count} tamu berhasil di-generate ulang. Halaman akan di-refresh.`);
+      window.location.reload();
+    } else {
+      alert("Gagal generate ulang barcode.");
+    }
+  }
+
   function startEdit(guest: GuestWithRsvp) {
     setEditingGuestId(guest.id);
     setEditForm({
@@ -339,6 +354,14 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
         >
           <RefreshCw size={14} className={fixingUrls ? "animate-spin" : ""} /> Perbaiki URL
         </button>
+        <button
+          onClick={regenerateAllBarcodes}
+          disabled={regeneratingAll}
+          className="flex items-center gap-1.5 border border-amber-300 text-amber-700 px-3 py-2 rounded-lg text-sm hover:bg-amber-50 disabled:opacity-40"
+          title="Generate ulang barcode semua tamu (mis. setelah ganti Mode Barcode di tab Tema)"
+        >
+          <QrCode size={14} className={regeneratingAll ? "animate-spin" : ""} /> Regenerate Semua Barcode
+        </button>
         <input
           ref={fileRef}
           type="file"
@@ -364,7 +387,7 @@ export function GuestsManager({ clientId, initialGuests, client }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nama Tamu *</label>
-              <input {...register("name")} placeholder="Ahmad Jordy" className={inputClass} />
+              <input {...register("name")} placeholder="Richard Lee" className={inputClass} />
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
             </div>
             <div>

@@ -34,6 +34,7 @@ const themeSchema = z.object({
   showMap: z.boolean().optional(),
   autoScroll: z.boolean().optional(),
   barcodeVisibility: z.enum(["ALWAYS", "AFTER_RSVP", "HIDDEN"]).optional(),
+  barcodeMode: z.enum(["SINGLE", "SEPARATE"]).optional(),
   disposableCameraEnabled: z.boolean().optional(),
 });
 

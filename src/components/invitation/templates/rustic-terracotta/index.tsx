@@ -292,19 +292,17 @@ export default function RusticTerracottaTemplate({ guest, client, token }: Templ
           )}
 
           {/* BARCODE */}
-          {token && guest?.barcodeChurch &&
-            (barcodeVisibility === "ALWAYS" || (barcodeVisibility === "AFTER_RSVP" && rsvpStatus === "HADIR")) && (
-            <BarcodeSection
-              barcodeChurch={guest.barcodeChurch}
-              barcodeReception={guest.barcodeReception ?? null}
-              invitationCategory={guest.invitationCategory ?? ""}
-              churchLabel={EVENT_TYPE_LABELS[visibleEvents[0]?.type ?? ""] ?? "Upacara"}
-              receptionLabel={EVENT_TYPE_LABELS["RESEPSI"]}
-              churchVenueName={getEventVenueName(visibleEvents[0], "id", "Venue")}
-              receptionVenueName={getEventVenueName(visibleEvents.find((e) => e.type === "RESEPSI"), "id", "Resepsi")}
-              primaryColor={terra} bgColor={DEF.paper} fontHeading={fontH} lang="id"
-            />
-          )}
+          <BarcodeSection
+            barcodeChurch={guest?.barcodeChurch}
+            barcodeReception={guest?.barcodeReception ?? null}
+            barcodeVisibility={barcodeVisibility}
+            rsvpStatus={rsvpStatus}
+            churchLabel={EVENT_TYPE_LABELS[visibleEvents[0]?.type ?? ""] ?? "Upacara"}
+            receptionLabel={EVENT_TYPE_LABELS["RESEPSI"]}
+            churchVenueName={getEventVenueName(visibleEvents[0], "id", "Venue")}
+            receptionVenueName={getEventVenueName(visibleEvents.find((e) => e.type === "RESEPSI"), "id", "Resepsi")}
+            primaryColor={terra} bgColor={DEF.paper} fontHeading={fontH} lang="id"
+          />
 
           {/* WISHES */}
           {has("WISHES") && (

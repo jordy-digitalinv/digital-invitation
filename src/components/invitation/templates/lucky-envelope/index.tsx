@@ -1500,21 +1500,20 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
                   <RSVPPlaceholder gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} t={t} />
                 ))}
 
-              {guest?.barcodeChurch && (barcodeVisibility === "ALWAYS" || (barcodeVisibility === "AFTER_RSVP" && confirmedRsvpStatus === "HADIR")) && (
-                <BarcodeSection
-                  barcodeChurch={guest.barcodeChurch}
-                  barcodeReception={guest.barcodeReception ?? null}
-                  invitationCategory={guest.invitationCategory ?? "GEREJA_RESEPSI"}
-                  churchLabel={getEventDisplayLabel(client.events.find((e: any) => e.type !== "RESEPSI" && e.type !== "AFTER_PARTY") ?? client.events[0], lang)}
-                  receptionLabel={getEventDisplayLabel(client.events.find((e: any) => e.type === "RESEPSI"), lang)}
-                  churchVenueName={getEventVenueName(client.events.find((e: any) => e.type !== "RESEPSI" && e.type !== "AFTER_PARTY") ?? client.events[0], lang, "Venue")}
-                  receptionVenueName={getEventVenueName(client.events.find((e: any) => e.type === "RESEPSI"), lang, "Resepsi")}
-                  primaryColor={gold}
-                  bgColor={ivorySurface}
-                  fontHeading={fontH}
-                  lang={lang}
-                />
-              )}
+              <BarcodeSection
+                barcodeChurch={guest?.barcodeChurch}
+                barcodeReception={guest?.barcodeReception ?? null}
+                barcodeVisibility={barcodeVisibility}
+                rsvpStatus={confirmedRsvpStatus}
+                churchLabel={getEventDisplayLabel(client.events.find((e: any) => e.type !== "RESEPSI" && e.type !== "AFTER_PARTY") ?? client.events[0], lang)}
+                receptionLabel={getEventDisplayLabel(client.events.find((e: any) => e.type === "RESEPSI"), lang)}
+                churchVenueName={getEventVenueName(client.events.find((e: any) => e.type !== "RESEPSI" && e.type !== "AFTER_PARTY") ?? client.events[0], lang, "Venue")}
+                receptionVenueName={getEventVenueName(client.events.find((e: any) => e.type === "RESEPSI"), lang, "Resepsi")}
+                primaryColor={gold}
+                bgColor={ivorySurface}
+                fontHeading={fontH}
+                lang={lang}
+              />
 
               {sectionKeys.includes("WISHES") && (
                 <WishesSection clientId={client.id} initialWishes={client.wishes} guestName={guest?.name} guestId={guest?.id} gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} fontB={fontB} t={t} />

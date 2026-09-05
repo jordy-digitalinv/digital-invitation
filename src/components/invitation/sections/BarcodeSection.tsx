@@ -38,9 +38,12 @@ function useWakeLock(active: boolean) {
 }
 
 interface Props {
-  barcodeChurch: string | null;
-  barcodeReception: string | null;
-  invitationCategory: string;
+  barcodeChurch: string | null | undefined;
+  barcodeReception?: string | null;
+  /** Theme.barcodeVisibility: "ALWAYS" | "AFTER_RSVP" | "HIDDEN". Defaults to "AFTER_RSVP". */
+  barcodeVisibility?: string | null;
+  /** Guest's current RSVP status, used when barcodeVisibility is "AFTER_RSVP". */
+  rsvpStatus?: string | null;
   /** Human-readable label for the first barcode, e.g. "Akad", "Pemberkatan", "Sangjit" */
   churchLabel?: string;
   /** Human-readable label for the second barcode, e.g. "Resepsi" */
@@ -52,25 +55,6 @@ interface Props {
   fontHeading?: string;
   lang?: "id" | "en";
 }
-
-const EVENT_TYPE_LABEL: Record<"id" | "en", Record<string, string>> = {
-  id: {
-    AKAD: "Akad",
-    PEMBERKATAN: "Pemberkatan",
-    RESEPSI: "Resepsi",
-    AFTER_PARTY: "After Party",
-    SANGJIT: "Sangjit",
-    LAMARAN: "Lamaran",
-  },
-  en: {
-    AKAD: "Wedding Ceremony",
-    PEMBERKATAN: "Holy Matrimony",
-    RESEPSI: "Reception",
-    AFTER_PARTY: "After Party",
-    SANGJIT: "Sangjit Ceremony",
-    LAMARAN: "Engagement",
-  },
-};
 
 const TR = {
   id: {
@@ -87,11 +71,6 @@ const TR = {
   },
 } as const;
 
-/** Convert an EventType enum value to a display label. */
-export function getEventLabel(eventType: string, lang: "id" | "en" = "id"): string {
-  return EVENT_TYPE_LABEL[lang][eventType] ?? eventType;
-}
-
 /** Resolve an event's venue name in the given language, falling back to the Indonesian name. */
 export function getEventVenueName(
   event: { venueName?: string | null; venueNameEn?: string | null } | undefined,
@@ -105,7 +84,8 @@ export function getEventVenueName(
 export function BarcodeSection({
   barcodeChurch,
   barcodeReception,
-  invitationCategory,
+  barcodeVisibility,
+  rsvpStatus,
   churchLabel = "Acara",
   receptionLabel = "Resepsi",
   churchVenueName = "Venue",
@@ -128,6 +108,11 @@ export function BarcodeSection({
   }, [expanded]);
 
   if (!barcodeChurch) return null;
+
+  const visibility = barcodeVisibility ?? "AFTER_RSVP";
+  const shouldShow = visibility === "ALWAYS" || (visibility === "AFTER_RSVP" && rsvpStatus === "HADIR");
+
+  if (!shouldShow) return null;
 
   const t = TR[lang];
 

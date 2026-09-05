@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/database/prisma";
-import { Prisma } from "@prisma/client";
-import type { AttendanceType } from "@prisma/client";
+import { RECEPTION_EVENT_TYPES } from "@/lib/categories";
+import type { AttendanceType, Event } from "@prisma/client";
 
-const SCAN_OPEN_BEFORE_MS = 2 * 60 * 60 * 1000; // boleh scan mulai 2 jam sebelum acara — tanpa cut off
+const SCAN_OPEN_BEFORE_MS = 4 * 60 * 60 * 1000; // boleh scan mulai 4 jam sebelum acara — tanpa cut off
 const WIB_OFFSET_MINUTES = 7 * 60; // UTC+7
 
 function getEventStartUTC(date: Date | null, timeStart: string): Date | null {
@@ -22,6 +22,22 @@ function formatWIBTime(dt: Date): string {
   const hh = String(wib.getUTCHours()).padStart(2, "0");
   const mm = String(wib.getUTCMinutes()).padStart(2, "0");
   return `${hh}:${mm} WIB`;
+}
+
+// Acara paling awal (tanggal, lalu jam mulai) di antara yang lolos filter — dipakai
+// sebagai acuan jendela waktu scan, menggantikan asumsi lama yang hardcode 1 tipe acara.
+function pickEarliestEvent(events: Event[], predicate: (e: Event) => boolean): Event | undefined {
+  return events
+    .filter(predicate)
+    .sort((a, b) => {
+      if (a.date && b.date) {
+        const diff = a.date.getTime() - b.date.getTime();
+        if (diff !== 0) return diff;
+      } else if (a.date || b.date) {
+        return a.date ? -1 : 1;
+      }
+      return a.timeStart.localeCompare(b.timeStart);
+    })[0];
 }
 
 export async function getAttendances(clientId: string) {
@@ -88,25 +104,25 @@ async function createAttendanceWithSequence(
   barcodeType: AttendanceType,
   actualPax: number
 ) {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const last = await prisma.attendance.findFirst({
-      where: { clientId },
-      orderBy: { sequenceNumber: "desc" },
-      select: { sequenceNumber: true },
-    });
-    const sequenceNumber = (last?.sequenceNumber ?? 0) + 1;
+  // Prisma's `increment` compiles to a single atomic `UPDATE ... SET x = x + 1 RETURNING x`,
+  // so concurrent scans can't land on the same sequence number (no read-then-write race).
+  const client = await prisma.client.update({
+    where: { id: clientId },
+    data: { lastAttendanceSequence: { increment: 1 } },
+    select: { lastAttendanceSequence: true },
+  });
 
-    try {
-      return await prisma.attendance.create({
-        data: { guestId, clientId, barcodeType, arrivedAt: new Date(), actualPax, sequenceNumber },
-        include: { guest: { include: { table: true } } },
-      });
-    } catch (err) {
-      const isSequenceClash = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
-      if (!isSequenceClash || attempt === 2) throw err;
-    }
-  }
-  throw new Error("Gagal generate nomor urut kehadiran");
+  return prisma.attendance.create({
+    data: {
+      guestId,
+      clientId,
+      barcodeType,
+      arrivedAt: new Date(),
+      actualPax,
+      sequenceNumber: client.lastAttendanceSequence,
+    },
+    include: { guest: { include: { table: true } } },
+  });
 }
 
 export async function scanBarcode(clientId: string, barcode: string) {
@@ -125,12 +141,20 @@ export async function scanBarcode(clientId: string, barcode: string) {
   const barcodeType: AttendanceType =
     guest.barcodeChurch === barcode ? "CHURCH" : "RECEPTION";
 
-  // Validasi jendela waktu scan
-  const eventType = barcodeType === "CHURCH" ? "PEMBERKATAN" : "RESEPSI";
-  const event = await prisma.event.findFirst({
-    where: { clientId, type: eventType },
-    orderBy: { sortOrder: "asc" },
-  });
+  // Validasi jendela waktu scan — acuannya acara paling awal dari sisi yang relevan,
+  // bukan 1 tipe acara yang di-hardcode, supaya kerja buat semua ClientType/EventType.
+  const [theme, events] = await Promise.all([
+    prisma.theme.findUnique({ where: { clientId }, select: { barcodeMode: true } }),
+    prisma.event.findMany({ where: { clientId } }),
+  ]);
+  const barcodeMode = theme?.barcodeMode ?? "SEPARATE";
+
+  const event =
+    barcodeMode === "SINGLE"
+      ? pickEarliestEvent(events, () => true)
+      : barcodeType === "CHURCH"
+      ? pickEarliestEvent(events, (e) => !RECEPTION_EVENT_TYPES.has(e.type))
+      : pickEarliestEvent(events, (e) => RECEPTION_EVENT_TYPES.has(e.type));
 
   if (event && event.date) {
     const eventStart = getEventStartUTC(event.date, event.timeStart);
@@ -139,12 +163,12 @@ export async function scanBarcode(clientId: string, barcode: string) {
       const windowStart = new Date(eventStart.getTime() - SCAN_OPEN_BEFORE_MS);
 
       if (now < windowStart) {
-        const label = barcodeType === "CHURCH" ? "Gereja" : "Resepsi";
+        const label = barcodeMode === "SINGLE" ? "Presensi" : barcodeType === "CHURCH" ? "Gereja" : "Resepsi";
         return {
           success: false,
           outsideWindow: true,
           barcodeType,
-          error: `Scan ${label} baru dibuka ${formatWIBTime(windowStart)} (2 jam sebelum acara)`,
+          error: `Scan ${label} baru dibuka ${formatWIBTime(windowStart)} (4 jam sebelum acara)`,
         } as const;
       }
     }

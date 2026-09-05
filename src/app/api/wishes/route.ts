@@ -18,7 +18,10 @@ export async function POST(req: Request) {
 
     const wish = await submitWish(parsed.data);
     return apiSuccess(wish);
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message === "RSVP_REQUIRED") {
+      return apiError("Konfirmasi kehadiran (RSVP) dulu sebelum kirim ucapan", 400);
+    }
     return apiError("Terjadi kesalahan server", 500);
   }
 }

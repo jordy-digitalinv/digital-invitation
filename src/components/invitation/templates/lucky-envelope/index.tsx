@@ -31,6 +31,7 @@ import { BarcodeSection, getEventVenueName } from "../../sections/BarcodeSection
 import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
 import { findMenuEvent } from "@/lib/menu";
+import { WishesLockedPlaceholder } from "../../sections/WishesLockedPlaceholder";
 import type { Rsvp } from "@/types/prisma.types";
 import { useGuestLanguage } from "@/hooks/useGuestLanguage";
 
@@ -154,6 +155,7 @@ interface Props {
       showCountdown?: boolean | null;
       showMap?: boolean | null;
       barcodeVisibility?: string | null;
+      requireRsvpForWish?: boolean | null;
     } | null;
   };
   token: string | null;
@@ -1260,6 +1262,7 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
   const showCountdown = !!client.theme?.showCountdown;
   const showMap = client.theme?.showMap !== false;
   const barcodeVisibility = (client.theme as any)?.barcodeVisibility ?? "AFTER_RSVP";
+  const requireRsvpForWish = (client.theme as any)?.requireRsvpForWish ?? false;
   const autoScrollEnabled = (client.theme as any)?.autoScroll ?? true;
   const countdownTarget = showCountdown
     ? (client.events.filter((e) => e.date).map((e) => new Date(e.date!)).filter((d) => d > new Date()).sort((a, b) => a.getTime() - b.getTime())[0] ?? null)
@@ -1516,7 +1519,11 @@ export function LuckyEnvelopeTemplate({ guest, client, token }: Props) {
               />
 
               {sectionKeys.includes("WISHES") && (
-                <WishesSection clientId={client.id} initialWishes={client.wishes} guestName={guest?.name} guestId={guest?.id} gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} fontB={fontB} t={t} />
+                !!guest && requireRsvpForWish && confirmedRsvpStatus !== "HADIR" && confirmedRsvpStatus !== "TIDAK_HADIR" ? (
+                  <WishesLockedPlaceholder primaryColor={gold} text={text} fontHeading={fontH} lang={lang} />
+                ) : (
+                  <WishesSection clientId={client.id} initialWishes={client.wishes} guestName={guest?.name} guestId={guest?.id} gold={gold} ivory={ivorySurface} champagne={champagneSurface} text={text} fontH={fontH} fontB={fontB} t={t} />
+                )
               )}
 
               {sectionKeys.includes("GIFT") && (

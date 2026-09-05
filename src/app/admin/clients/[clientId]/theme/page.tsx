@@ -18,6 +18,7 @@ const DEFAULT_THEME = {
   showMap: true,
   barcodeVisibility: "AFTER_RSVP" as const,
   barcodeMode: "SEPARATE" as const,
+  requireRsvpForWish: false,
 };
 
 export default async function ThemePage({ params }: Props) {
@@ -41,6 +42,7 @@ export default async function ThemePage({ params }: Props) {
         autoScroll: theme.autoScroll ?? true,
         barcodeVisibility: (theme.barcodeVisibility ?? "AFTER_RSVP") as "ALWAYS" | "AFTER_RSVP" | "HIDDEN",
         barcodeMode: (theme.barcodeMode ?? "SEPARATE") as "SINGLE" | "SEPARATE",
+        requireRsvpForWish: theme.requireRsvpForWish ?? false,
       }
     : DEFAULT_THEME;
 

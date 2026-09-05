@@ -61,6 +61,25 @@ export async function getRsvps(clientId: string) {
 }
 
 export async function submitWish(data: WishInput) {
+  const theme = await prisma.theme.findUnique({
+    where: { clientId: data.clientId },
+    select: { requireRsvpForWish: true },
+  });
+
+  if (theme?.requireRsvpForWish) {
+    const guest = data.guestId
+      ? await prisma.guest.findUnique({
+          where: { id: data.guestId },
+          select: { clientId: true, rsvpStatus: true },
+        })
+      : null;
+
+    const hasRsvped = guest?.clientId === data.clientId && guest.rsvpStatus !== "PENDING";
+    if (!hasRsvped) {
+      throw new Error("RSVP_REQUIRED");
+    }
+  }
+
   return prisma.wish.create({
     data: {
       clientId: data.clientId,

@@ -35,6 +35,7 @@ const themeSchema = z.object({
   autoScroll: z.boolean().optional(),
   barcodeVisibility: z.enum(["ALWAYS", "AFTER_RSVP", "HIDDEN"]).optional(),
   barcodeMode: z.enum(["SINGLE", "SEPARATE"]).optional(),
+  requireRsvpForWish: z.boolean().optional(),
   disposableCameraEnabled: z.boolean().optional(),
 });
 

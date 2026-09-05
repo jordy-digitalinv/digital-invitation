@@ -183,6 +183,7 @@ model Theme {
   showCountdown           Boolean  @default(false)
   barcodeVisibility       String   @default("AFTER_RSVP")
   barcodeMode             String   @default("SEPARATE")
+  requireRsvpForWish      Boolean  @default(false)
   autoScroll              Boolean  @default(true)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

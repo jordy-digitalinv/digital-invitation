@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { MusicPlayer } from "../../sections/MusicPlayer";
 import { GiftAddressCard } from "../../sections/GiftAddressCard";
+import { WishesLockedPlaceholder } from "../../sections/WishesLockedPlaceholder";
 import { useAutoScroll } from "@/hooks/useAutoScroll";
 import type { Rsvp } from "@/types/prisma.types";
 
@@ -39,7 +40,7 @@ interface Props {
     galleries: { id: string; url: string; type: string; sortOrder: number }[];
     gifts: { id: string; kind: string; bankName: string | null; accountNumber: string | null; accountName: string | null; ewalletType: string | null; ewalletNumber: string | null; qrisImage: string | null; isActive: boolean; receiverName: string | null; receiverPhone: string | null; address: string | null }[];
     wishes: { id: string; name: string; message: string; reply: string | null; createdAt: Date }[];
-    theme: { templateSlug?: string | null; primaryColor: string; secondaryColor: string; bgColor: string; textColor: string; fontHeading: string; fontBody: string; showCountdown?: boolean | null; showMap?: boolean | null; autoScroll?: boolean | null } | null;
+    theme: { templateSlug?: string | null; primaryColor: string; secondaryColor: string; bgColor: string; textColor: string; fontHeading: string; fontBody: string; showCountdown?: boolean | null; showMap?: boolean | null; autoScroll?: boolean | null; requireRsvpForWish?: boolean | null } | null;
   };
   token: string | null;
 }
@@ -1044,12 +1045,13 @@ function WishesSection({
 
 function WillYouComeSection({
   clientId, guest, token, bgImage, primary, content, fontH, fontB,
-  initialWishes, sectionKeys,
+  initialWishes, sectionKeys, requireRsvpForWish,
 }: {
   clientId: string; guest: Guest | null; token: string | null;
   bgImage?: string; primary: string; content: string; fontH: string; fontB: string;
   initialWishes: Props["client"]["wishes"];
   sectionKeys: string[];
+  requireRsvpForWish?: boolean;
 }) {
   const showRSVP = sectionKeys.includes("RSVP");
   const showWishes = sectionKeys.includes("WISHES");
@@ -1099,11 +1101,15 @@ function WillYouComeSection({
               }}>
                 Wishes &amp; Prayers
               </h2>
-              <WishesSection
-                clientId={clientId} initialWishes={initialWishes}
-                guestName={guest?.name} guestId={guest?.id}
-                primary={primary} fontH={fontH} fontB={fontB}
-              />
+              {!!guest && requireRsvpForWish && guest.rsvp?.status !== "HADIR" && guest.rsvp?.status !== "TIDAK_HADIR" ? (
+                <WishesLockedPlaceholder primaryColor={primary} fontHeading={fontH} lang="id" />
+              ) : (
+                <WishesSection
+                  clientId={clientId} initialWishes={initialWishes}
+                  guestName={guest?.name} guestId={guest?.id}
+                  primary={primary} fontH={fontH} fontB={fontB}
+                />
+              )}
             </FadeIn>
           )}
         </div>
@@ -1354,6 +1360,7 @@ export function HanoiModernTemplate({ guest, client, token }: Props) {
   const content = th?.secondaryColor || DEF.content;
   const fontH = th?.fontHeading || "Cormorant Garamond";
   const fontB = th?.fontBody || "Jost";
+  const requireRsvpForWish = th?.requireRsvpForWish ?? false;
 
   const groomNick = profile?.groomNickname || profile?.groomName || "Groom";
   const brideNick = profile?.brideNickname || profile?.brideName || "Bride";
@@ -1486,6 +1493,7 @@ export function HanoiModernTemplate({ guest, client, token }: Props) {
               fontB={fontB}
               initialWishes={client.wishes}
               sectionKeys={sectionKeys}
+              requireRsvpForWish={requireRsvpForWish}
             />
 
             {/* Gift floating button */}

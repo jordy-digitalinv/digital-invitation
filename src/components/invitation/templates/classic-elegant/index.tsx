@@ -12,6 +12,7 @@ import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
 import { getEventsForGuestCategory, EVENT_TYPE_LABELS } from "@/lib/categories";
 import { findMenuEvent } from "@/lib/menu";
+import { WishesLockedPlaceholder } from "../../sections/WishesLockedPlaceholder";
 import type { Rsvp } from "@/types/prisma.types";
 
 interface Guest {
@@ -58,6 +59,7 @@ interface TemplateProps {
       fontHeading: string; fontBody: string;
       showCountdown?: boolean | null; showMap?: boolean | null; autoScroll?: boolean | null;
       barcodeVisibility?: string | null;
+      requireRsvpForWish?: boolean | null;
     } | null;
   };
   token: string | null;
@@ -120,6 +122,7 @@ export default function ClassicElegantTemplate({ guest, client, token }: Templat
   const playRef = useRef<(() => void) | null>(null);
   const [rsvpStatus, setRsvpStatus] = useState<string | null>(guest?.rsvp?.status ?? null);
   const barcodeVisibility = theme?.barcodeVisibility ?? "AFTER_RSVP";
+  const requireRsvpForWish = theme?.requireRsvpForWish ?? false;
 
   const sectionKeys = client.sections.filter((s) => s.sectionKey).map((s) => s.sectionKey);
   const visibleEvents = useMemo(
@@ -348,11 +351,15 @@ export default function ClassicElegantTemplate({ guest, client, token }: Templat
 
           {/* WISHES */}
           {(sectionKeys.length === 0 || sectionKeys.includes("WISHES")) && (
+            !!guest && requireRsvpForWish && rsvpStatus !== "HADIR" && rsvpStatus !== "TIDAK_HADIR" ? (
+            <WishesLockedPlaceholder primaryColor={gold} text={text} fontHeading={fontH} lang="id" />
+          ) : (
             <WishesSection
               clientId={client.id} initialWishes={client.wishes}
               guestName={guest?.name ?? null} guestId={guest?.id ?? null}
               gold={gold} surface={surface} bg={bg} text={text} fontH={fontH} fontB={fontB}
             />
+          )
           )}
 
           {/* GIFT */}

@@ -11,6 +11,7 @@ import { AttentionSection } from "../../sections/AttentionSection";
 import { formatDate } from "@/lib/utils";
 import { getEventsForGuestCategory, EVENT_TYPE_LABELS } from "@/lib/categories";
 import { findMenuEvent } from "@/lib/menu";
+import { WishesLockedPlaceholder } from "../../sections/WishesLockedPlaceholder";
 import { useAutoScroll } from "@/hooks/useAutoScroll";
 import type { Rsvp } from "@/types/prisma.types";
 
@@ -58,6 +59,7 @@ interface TemplateProps {
       fontHeading: string; fontBody: string;
       showCountdown?: boolean | null; showMap?: boolean | null; autoScroll?: boolean | null;
       barcodeVisibility?: string | null;
+      requireRsvpForWish?: boolean | null;
     } | null;
   };
   token: string | null;
@@ -99,6 +101,7 @@ export default function RusticTerracottaTemplate({ guest, client, token }: Templ
   const playRef = useRef<(() => void) | null>(null);
   const [rsvpStatus, setRsvpStatus] = useState<string | null>(guest?.rsvp?.status ?? null);
   const barcodeVisibility = theme?.barcodeVisibility ?? "AFTER_RSVP";
+  const requireRsvpForWish = theme?.requireRsvpForWish ?? false;
 
   const sectionKeys = client.sections.map((s) => s.sectionKey);
   const has = (k: string) => sectionKeys.length === 0 || sectionKeys.includes(k);
@@ -306,8 +309,12 @@ export default function RusticTerracottaTemplate({ guest, client, token }: Templ
 
           {/* WISHES */}
           {has("WISHES") && (
+            !!guest && requireRsvpForWish && rsvpStatus !== "HADIR" && rsvpStatus !== "TIDAK_HADIR" ? (
+            <WishesLockedPlaceholder primaryColor={terra} text={text} fontHeading={fontH} lang="id" />
+          ) : (
             <WishesBlock clientId={client.id} initialWishes={client.wishes}
               guestName={guest?.name ?? null} guestId={guest?.id ?? null} terra={terra} />
+          )
           )}
 
           {/* GIFT */}

@@ -290,6 +290,7 @@ interface Theme {
   autoScroll?: boolean | null;
   barcodeVisibility: "ALWAYS" | "AFTER_RSVP" | "HIDDEN";
   barcodeMode: "SINGLE" | "SEPARATE";
+  requireRsvpForWish?: boolean | null;
 }
 
 interface Props {
@@ -515,6 +516,24 @@ export function ThemeEditor({ clientId, initialTheme }: Props) {
                   <option value="SINGLE">Satu barcode — berlaku untuk semua acara yang tamu itu diundang</option>
                 </select>
               </div>
+
+              <label className="flex items-center justify-between cursor-pointer border-t border-stone-100 pt-4">
+                <div>
+                  <p className="text-sm font-medium text-stone-700">Wajib RSVP Sebelum Kirim Ucapan</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Tamu harus konfirmasi kehadiran dulu baru bisa kirim ucapan & doa</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update("requireRsvpForWish", !(theme.requireRsvpForWish ?? false))}
+                  className="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ml-4"
+                  style={{ background: (theme.requireRsvpForWish ?? false) ? "#292524" : "#d6d3d1" }}
+                >
+                  <span
+                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                    style={{ transform: (theme.requireRsvpForWish ?? false) ? "translateX(20px)" : "translateX(0)" }}
+                  />
+                </button>
+              </label>
 
             </div>
           </div>

@@ -362,25 +362,26 @@ function RsvpBlock({
 }) {
   const [status, setStatus] = useState<"HADIR" | "TIDAK_HADIR">("HADIR");
   const [pax, setPax] = useState(1);
-  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(!!guest.rsvp);
   const [menuChoices, setMenuChoices] = useState<string[]>([]);
 
   async function submit() {
     setSending(true);
-    await fetch("/api/rsvp", {
+    const res = await fetch("/api/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token, clientId, guestId: guest.id,
         name: guest.name, paxCount: status === "HADIR" ? pax : 0,
-        status, message: message || undefined,
+        status,
         menuChoices: menuItems.length > 0 && status === "HADIR" ? menuChoices.slice(0, pax).filter(Boolean) : undefined,
       }),
     });
-    setDone(true);
-    onConfirmed(status);
+    if (res.ok) {
+      setDone(true);
+      onConfirmed(status);
+    }
     setSending(false);
   }
 
@@ -423,8 +424,6 @@ function RsvpBlock({
           </select>
         ))
       )}
-      <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={2}
-        placeholder="Pesan (opsional)" className={inputCls} style={inputStyle} />
       <button onClick={submit} disabled={sending}
         className="w-full py-3 rounded-lg text-white text-sm disabled:opacity-60" style={{ background: accent }}>
         {sending ? "Mengirim..." : "Kirim Konfirmasi"}

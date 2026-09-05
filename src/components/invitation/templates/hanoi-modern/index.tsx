@@ -791,7 +791,6 @@ function RSVPSection({
 }) {
   const [status, setStatus] = useState<"HADIR" | "TIDAK_HADIR">((guest.rsvp?.status as "HADIR" | "TIDAK_HADIR") || "HADIR");
   const [pax, setPax] = useState((guest.rsvp as any)?.paxCount ?? guest.maxPax);
-  const [msg, setMsg] = useState((guest.rsvp as any)?.message || "");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(!!guest.rsvp);
 
@@ -800,7 +799,7 @@ function RSVPSection({
     const res = await fetch("/api/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientId, guestId: guest.id, token, name: guest.name, paxCount: pax, status, message: msg }),
+      body: JSON.stringify({ clientId, guestId: guest.id, token, name: guest.name, paxCount: pax, status }),
     });
     if (res.ok) { setDone(true); }
     setSaving(false);
@@ -875,18 +874,6 @@ function RSVPSection({
               </select>
             </motion.div>
           )}
-
-          {/* Message */}
-          <div>
-            <label style={{ fontFamily: `'${fontB}', sans-serif`, fontSize: "0.72rem", color: "rgba(255,255,255,0.6)", display: "block", marginBottom: "6px" }}>
-              Send a message
-            </label>
-            <textarea
-              value={msg} onChange={(e) => setMsg(e.target.value)} rows={4}
-              placeholder="Write your wishes..."
-              style={{ ...inputStyle, resize: "none", lineHeight: 1.65 }}
-            />
-          </div>
 
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}

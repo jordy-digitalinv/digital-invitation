@@ -55,13 +55,24 @@ export default function LoginPage() {
       }}
     >
       {/* Logo section */}
-      <div className="relative shrink-0 h-[45vh] flex items-center justify-center overflow-hidden">
+      <div className="relative shrink-0 h-[45vh] flex items-center justify-center overflow-hidden px-6">
+        {/* Mobile: icon-only mark */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/icons/icon-512.png"
+          alt="Digital Invitation"
+          draggable={false}
+          className="sm:hidden"
+          style={{ width: "128px", height: "128px" }}
+        />
+        {/* Tablet/desktop: full lockup with wordmark */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo.jpg"
           alt="Digital Invitation"
           draggable={false}
-          style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }}
+          className="hidden sm:block"
+          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", objectPosition: "center" }}
         />
         {/* Fade into form */}
         <div

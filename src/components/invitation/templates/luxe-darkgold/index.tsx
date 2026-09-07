@@ -128,21 +128,18 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
   }
 
   return (
-    <div style={{
-      background: bgImage ? undefined : bg,
-      backgroundImage: bgImage ? `url('${bgImage}')` : undefined,
-      backgroundSize: bgImage ? "cover" : undefined,
-      backgroundPosition: bgImage ? "center" : undefined,
-      backgroundAttachment: bgImage ? "fixed" : undefined,
-      color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
-    }}>
+    <div style={{ background: bg, color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh" }}>
       <style>{`
         .lx-divider { display:flex; align-items:center; gap:.8rem; justify-content:center; }
         .lx-divider::before,.lx-divider::after { content:""; height:1px; width:52px; background:${gold}55; }
       `}</style>
 
       {bgImage && (
-        <div aria-hidden style={{ position: "fixed", inset: 0, background: `${bg}cc`, zIndex: -1, pointerEvents: "none" }} />
+        <div aria-hidden style={{
+          position: "fixed", top: 0, left: 0, width: "100vw", height: "100svh", zIndex: -1, pointerEvents: "none",
+          backgroundImage: `url('${bgImage}')`, backgroundSize: "cover", backgroundPosition: "center",
+          opacity: 0.12,
+        }} />
       )}
 
       {music && (

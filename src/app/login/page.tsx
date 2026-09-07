@@ -49,8 +49,7 @@ export default function LoginPage() {
     <div
       className="min-h-screen flex flex-col overflow-hidden"
       style={{
-        background:
-          "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(200,169,107,0.16), transparent 70%), linear-gradient(180deg, #000 0%, #141414 55%, #000 100%)",
+        background: "#141414",
         fontFamily: "'IBM Plex Sans', Arial, sans-serif",
       }}
     >
@@ -74,27 +73,22 @@ export default function LoginPage() {
           className="hidden sm:block"
           style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", objectPosition: "center" }}
         />
-        {/* Fade into form */}
-        <div
-          className="absolute inset-x-0 bottom-0 pointer-events-none"
-          style={{ height: "120px", background: "linear-gradient(to bottom, transparent, #000)" }}
-        />
       </div>
 
       {/* Form section */}
       <div className="shrink-0 w-full max-w-sm mx-auto px-4 pb-10">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="rounded-2xl p-7 space-y-5 backdrop-blur-md"
+          className="rounded-2xl p-7 space-y-5"
           style={{
-            background: "rgba(0,0,0,0.55)",
-            border: "1px solid rgba(212,168,92,0.3)",
+            background: "#141414",
+            border: "1px solid rgba(212,186,119,0.3)",
             boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
           }}
         >
           <p
             className="text-center text-sm font-medium"
-            style={{ color: "#D4A85C", letterSpacing: "0.2em" }}
+            style={{ color: "#d4ba77", letterSpacing: "0.2em" }}
           >
             ADMIN PANEL
           </p>
@@ -113,7 +107,7 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-1">
-            <label className="block text-xs font-medium tracking-wide" style={{ color: "#c9a86c" }}>
+            <label className="block text-xs font-medium tracking-wide" style={{ color: "#d4ba77" }}>
               Email
             </label>
             <input
@@ -121,9 +115,9 @@ export default function LoginPage() {
               type="email"
               placeholder="admin@example.com"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors placeholder-slate-500 text-white"
-              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,168,92,0.22)" }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,92,0.6)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,92,0.22)")}
+              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,186,119,0.22)" }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,186,119,0.6)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(212,186,119,0.22)")}
             />
             {errors.email && (
               <p className="text-xs" style={{ color: "#fca5a5" }}>{errors.email.message}</p>
@@ -131,7 +125,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-medium tracking-wide" style={{ color: "#c9a86c" }}>
+            <label className="block text-xs font-medium tracking-wide" style={{ color: "#d4ba77" }}>
               Password
             </label>
             <input
@@ -139,9 +133,9 @@ export default function LoginPage() {
               type="password"
               placeholder="••••••••"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-colors placeholder-slate-500 text-white"
-              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,168,92,0.22)" }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,92,0.6)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,92,0.22)")}
+              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,186,119,0.22)" }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,186,119,0.6)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(212,186,119,0.22)")}
             />
             {errors.password && (
               <p className="text-xs" style={{ color: "#fca5a5" }}>{errors.password.message}</p>
@@ -153,7 +147,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-xl py-2.5 text-sm font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed transition-opacity mt-1"
             style={{
-              background: "linear-gradient(135deg, #D4A85C, #a8752d)",
+              background: "linear-gradient(135deg, #d4ba77, #8a6a35)",
               color: "#0a0a0a",
               letterSpacing: "0.04em",
             }}

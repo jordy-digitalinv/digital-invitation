@@ -128,19 +128,18 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
   }
 
   return (
-    <div style={{ background: bg, color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh" }}>
+    <div style={{
+      background: bgImage ? undefined : bg,
+      backgroundImage: bgImage ? `linear-gradient(${bg}99, ${bg}99), url('${bgImage}')` : undefined,
+      backgroundSize: bgImage ? "100% auto" : undefined,
+      backgroundRepeat: bgImage ? "repeat-y" : undefined,
+      backgroundPosition: bgImage ? "top center" : undefined,
+      color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
+    }}>
       <style>{`
         .lx-divider { display:flex; align-items:center; gap:.8rem; justify-content:center; }
         .lx-divider::before,.lx-divider::after { content:""; height:1px; width:52px; background:${gold}55; }
       `}</style>
-
-      {bgImage && (
-        <div aria-hidden style={{
-          position: "fixed", top: 0, left: 0, width: "100vw", height: "100svh", zIndex: -1, pointerEvents: "none",
-          backgroundImage: `url('${bgImage}')`, backgroundSize: "cover", backgroundPosition: "center",
-          opacity: 0.2,
-        }} />
-      )}
 
       {music && (
         <MusicPlayer url={music.url} title={music.title} registerPlay={(fn) => { playRef.current = fn; }} />

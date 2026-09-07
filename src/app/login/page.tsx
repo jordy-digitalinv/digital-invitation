@@ -48,14 +48,18 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex flex-col overflow-hidden"
-      style={{ background: "#000", fontFamily: "'IBM Plex Sans', Arial, sans-serif" }}
+      style={{
+        background:
+          "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(200,169,107,0.16), transparent 70%), linear-gradient(180deg, #000 0%, #141414 55%, #000 100%)",
+        fontFamily: "'IBM Plex Sans', Arial, sans-serif",
+      }}
     >
       {/* Logo section */}
       <div className="relative shrink-0 h-[45vh] flex items-center justify-center overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo.png"
-          alt=""
+          src="/logo.jpg"
+          alt="Digital Invitation"
           draggable={false}
           style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }}
         />

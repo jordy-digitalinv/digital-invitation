@@ -37,6 +37,12 @@ export const metadata: Metadata = {
     template: "%s",
   },
   description: null,
+  applicationName: "Digital Invitation",
+  appleWebApp: {
+    capable: true,
+    title: "Digital Invitation",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +50,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   minimumScale: 1,
   viewportFit: "cover",
+  themeColor: "#141414",
 };
 
 export default function RootLayout({

@@ -29,7 +29,7 @@ export function AdminSidebar({ role, onClose }: Props) {
       <div className="h-14 flex items-center justify-between px-4" style={{ borderBottom: "1px solid #1e293b" }}>
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-            <Image src="/logo.png" alt="Logo" width={28} height={28} className="w-full h-full object-cover" />
+            <Image src="/icons/icon-192.png" alt="Logo" width={28} height={28} className="w-full h-full object-cover" />
           </div>
           <span className="font-semibold text-sm" style={{ color: "#e2e8f0" }}>Digital Invitation</span>
         </div>

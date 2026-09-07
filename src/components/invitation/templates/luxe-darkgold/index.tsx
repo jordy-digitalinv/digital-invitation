@@ -86,6 +86,9 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
 
   const music = client.musics[0];
   const heroImage = profile?.heroImage || client.galleries.find((g) => g.type === "HERO")?.url || null;
+  const bgImage = client.galleries.find((g) => g.type === "BACKGROUND")?.url || null;
+  // Sections with an opaque surface color need to bleed through faintly when a background image is set.
+  const surfaceBleed = bgImage ? `${surface}cc` : surface;
   const firstDate = client.events.find((e) => e.date)?.date ?? null;
   // Countdown selalu mengarah ke acara TERDEKAT yang belum lewat.
   // Kalau semua acara sudah lewat, countdown disembunyikan.
@@ -125,11 +128,22 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
   }
 
   return (
-    <div style={{ background: bg, color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh" }}>
+    <div style={{
+      background: bgImage ? undefined : bg,
+      backgroundImage: bgImage ? `url('${bgImage}')` : undefined,
+      backgroundSize: bgImage ? "cover" : undefined,
+      backgroundPosition: bgImage ? "center" : undefined,
+      backgroundAttachment: bgImage ? "fixed" : undefined,
+      color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
+    }}>
       <style>{`
         .lx-divider { display:flex; align-items:center; gap:.8rem; justify-content:center; }
         .lx-divider::before,.lx-divider::after { content:""; height:1px; width:52px; background:${gold}55; }
       `}</style>
+
+      {bgImage && (
+        <div aria-hidden style={{ position: "fixed", inset: 0, background: `${bg}cc`, zIndex: -1, pointerEvents: "none" }} />
+      )}
 
       {music && (
         <MusicPlayer url={music.url} title={music.title} registerPlay={(fn) => { playRef.current = fn; }} />
@@ -184,16 +198,16 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
                 <span className="block my-2" style={{ color: gold, fontSize: ".6em" }}>✦ &amp; ✦</span>
                 {brideNick}
               </h1>
-              {firstDate && (
-                <p className="mt-8 text-[11px]" style={{ letterSpacing: "0.4em", color: DEF.muted }}>{formatDate(firstDate).toUpperCase()}</p>
-              )}
             </div>
           </section>
 
           {/* COUNTDOWN */}
           {(theme?.showCountdown ?? true) && countdownTarget && (
-            <section className="text-center py-14 px-6" style={{ background: surface }}>
+            <section className="text-center py-14 px-6" style={{ background: surfaceBleed }}>
               <SectionHead gold={gold} fontH={fontH} label="SAVE THE DATE">Menuju Hari Bahagia</SectionHead>
+              {firstDate && (
+                <p className="text-[11px] -mt-4 mb-10" style={{ letterSpacing: "0.4em", color: DEF.muted }}>{formatDate(firstDate).toUpperCase()}</p>
+              )}
               <CountdownInline target={countdownTarget} gold={gold} fontH={fontH} />
             </section>
           )}
@@ -201,7 +215,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
           {/* COUPLE */}
           {has("COUPLE") && profile && (
             <section className="py-16 px-6" style={{ borderBottom: `1px solid ${gold}22` }}>
-              <SectionHead gold={gold} fontH={fontH} label="MEMPELAI">Kedua Mempelai</SectionHead>
+              <SectionHead gold={gold} fontH={fontH} label="MEMPELAI">Kami yang Berbahagia</SectionHead>
               {profile.openingQuote && (
                 <p className="max-w-md mx-auto text-center italic text-sm leading-relaxed -mt-4 mb-12" style={{ color: DEF.muted }}>
                   “{profile.openingQuote}”
@@ -272,21 +286,6 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
             </section>
           )}
 
-          {/* GALLERY */}
-          {has("GALLERY") && client.galleries.filter((g) => g.type === "GALLERY").length > 0 && (
-            <section className="py-16 px-6" style={{ borderBottom: `1px solid ${gold}22` }}>
-              <SectionHead gold={gold} fontH={fontH} label="MOMEN">Galeri</SectionHead>
-              <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-                {client.galleries.filter((g) => g.type === "GALLERY").map((g, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={g.id} src={g.url} alt="" loading="lazy"
-                    className={`w-full object-cover ${i % 3 === 0 ? "col-span-2 aspect-[16/10]" : "aspect-square"}`}
-                    style={{ border: `1px solid ${gold}33` }} />
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* RSVP */}
           {has("RSVP") && (
             <section className="py-16 px-6" style={{ borderBottom: `1px solid ${gold}22` }}>
@@ -313,6 +312,21 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
             receptionVenueName={getEventVenueName(visibleEvents.find((e) => e.type === "RESEPSI"), "id", "Resepsi")}
             primaryColor={gold} bgColor={surface} fontHeading={fontH} lang="id"
           />
+
+          {/* GALLERY */}
+          {has("GALLERY") && client.galleries.filter((g) => g.type === "GALLERY").length > 0 && (
+            <section className="py-16 px-6" style={{ borderBottom: `1px solid ${gold}22` }}>
+              <SectionHead gold={gold} fontH={fontH} label="MOMEN">Galeri</SectionHead>
+              <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
+                {client.galleries.filter((g) => g.type === "GALLERY").map((g, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={g.id} src={g.url} alt="" loading="lazy"
+                    className={`w-full object-cover ${i % 3 === 0 ? "col-span-2 aspect-[16/10]" : "aspect-square"}`}
+                    style={{ border: `1px solid ${gold}33` }} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* WISHES */}
           {has("WISHES") && (

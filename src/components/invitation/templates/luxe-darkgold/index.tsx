@@ -88,7 +88,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
   const heroImage = profile?.heroImage || client.galleries.find((g) => g.type === "HERO")?.url || null;
   const bgImage = client.galleries.find((g) => g.type === "BACKGROUND")?.url || null;
   // Sections with an opaque surface color need to bleed through faintly when a background image is set.
-  const surfaceBleed = bgImage ? `${surface}cc` : surface;
+  const surfaceBleed = bgImage ? `${surface}80` : surface;
   const firstDate = client.events.find((e) => e.date)?.date ?? null;
   // Countdown selalu mengarah ke acara TERDEKAT yang belum lewat.
   // Kalau semua acara sudah lewat, countdown disembunyikan.
@@ -138,7 +138,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
         <div aria-hidden style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100svh", zIndex: -1, pointerEvents: "none",
           backgroundImage: `url('${bgImage}')`, backgroundSize: "cover", backgroundPosition: "center",
-          opacity: 0.12,
+          opacity: 0.2,
         }} />
       )}
 

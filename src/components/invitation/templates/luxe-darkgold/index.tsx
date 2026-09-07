@@ -180,13 +180,6 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
           {/* HERO */}
           <section className="relative flex flex-col items-center justify-center text-center overflow-hidden"
             style={{ minHeight: "95dvh", padding: "4rem 1.5rem" }}>
-            {heroImage && (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25" />
-                <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center, transparent 0%, ${bg} 85%)` }} />
-              </>
-            )}
             <div className="relative z-10">
               <p style={{ fontSize: ".65rem", letterSpacing: "0.5em", color: gold, fontFamily: `'${fontH}', serif` }}>{invLabel}</p>
               <h1 className="mt-8 leading-snug" style={{ fontFamily: `'${fontH}', serif`, fontWeight: 400, fontSize: "clamp(2.4rem,10vw,4rem)", letterSpacing: "0.06em" }}>

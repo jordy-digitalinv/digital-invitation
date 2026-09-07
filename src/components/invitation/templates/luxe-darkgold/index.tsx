@@ -86,7 +86,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
 
   const music = client.musics[0];
   const heroImage = profile?.heroImage || client.galleries.find((g) => g.type === "HERO")?.url || null;
-  const bgImage = client.galleries.find((g) => g.type === "BACKGROUND")?.url || null;
+  const bgImage = heroImage || client.galleries.find((g) => g.type === "BACKGROUND")?.url || null;
   // Sections with an opaque surface color need to bleed through faintly when a background image is set.
   const surfaceBleed = bgImage ? `${surface}80` : surface;
   const firstDate = client.events.find((e) => e.date)?.date ?? null;
@@ -131,9 +131,9 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
     <div style={{
       background: bgImage ? undefined : bg,
       backgroundImage: bgImage ? `linear-gradient(${bg}99, ${bg}99), url('${bgImage}')` : undefined,
-      backgroundSize: bgImage ? "100% auto" : undefined,
-      backgroundRepeat: bgImage ? "repeat-y" : undefined,
-      backgroundPosition: bgImage ? "top center" : undefined,
+      backgroundSize: bgImage ? "cover" : undefined,
+      backgroundPosition: bgImage ? "center" : undefined,
+      backgroundAttachment: bgImage ? "fixed" : undefined,
       color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
     }}>
       <style>{`

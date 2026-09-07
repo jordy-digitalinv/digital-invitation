@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Trash2, Plus, Eye, EyeOff, CreditCard, Wallet, QrCode, Upload, X, Gift as GiftIcon, MapPin } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Plus, Eye, EyeOff, CreditCard, Wallet, QrCode, X, Gift as GiftIcon, MapPin } from "lucide-react";
 
 type GiftMode = "bank" | "ewallet" | "qris" | "address";
 
@@ -47,39 +47,11 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
     address: "",
   });
   const [qrisImageUrl, setQrisImageUrl] = useState<string | null>(null);
-  const [qrisPreview, setQrisPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function updateForm(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  async function handleQrisFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-
-    setUploading(true);
-    setError("");
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("clientId", clientId);
-
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Upload gagal");
-        return;
-      }
-      setQrisImageUrl(data.url);
-      setQrisPreview(data.url);
-    } finally {
-      setUploading(false);
-    }
   }
 
   async function handleAdd() {
@@ -139,7 +111,6 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
       setGifts((prev) => [...prev, data]);
       setForm({ bankName: "", accountNumber: "", accountName: "", ewalletType: "GoPay", ewalletNumber: "", qrisLabel: "", receiverName: "", receiverPhone: "", address: "" });
       setQrisImageUrl(null);
-      setQrisPreview(null);
     } finally {
       setSaving(false);
     }
@@ -285,38 +256,35 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
               />
             </div>
             <div>
-              <label className={labelClass}>Gambar QRIS</label>
+              <label className={labelClass}>URL Gambar QRIS</label>
               <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleQrisFileChange}
-                className="hidden"
+                type="url"
+                placeholder="https://... (bukan link Google Drive)"
+                value={qrisImageUrl ?? ""}
+                onChange={(e) => setQrisImageUrl(e.target.value || null)}
+                className={inputClass}
               />
-              {qrisPreview ? (
-                <div className="relative inline-block">
+              <p className="text-xs text-stone-400 mt-1">
+                Link Google Drive belum bisa dipakai. Upload dulu gambarnya ke{" "}
+                <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">postimages.org</a>
+                {" "}atau{" "}
+                <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">imgbb.com</a>
+                {" "}(gratis, tanpa akun), lalu tempel link-nya di sini.
+              </p>
+              {qrisImageUrl && (
+                <div className="relative inline-block mt-3">
                   <img
-                    src={qrisPreview}
+                    src={qrisImageUrl}
                     alt="QRIS preview"
                     className="w-40 h-40 object-contain rounded-xl border border-stone-200"
                   />
                   <button
-                    onClick={() => { setQrisImageUrl(null); setQrisPreview(null); }}
+                    onClick={() => setQrisImageUrl(null)}
                     className="absolute -top-2 -right-2 bg-white border border-stone-200 rounded-full p-0.5 text-stone-500 hover:text-red-500"
                   >
                     <X size={14} />
                   </button>
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="flex items-center gap-2 border-2 border-dashed border-stone-300 rounded-xl px-4 py-3 text-sm text-stone-500 hover:border-stone-400 hover:text-stone-700 transition-colors disabled:opacity-50"
-                >
-                  <Upload size={16} />
-                  {uploading ? "Mengupload..." : "Upload gambar QRIS"}
-                </button>
               )}
             </div>
           </div>
@@ -361,7 +329,7 @@ export function GiftsManager({ clientId, initialGifts }: Props) {
 
         <button
           onClick={handleAdd}
-          disabled={saving || uploading}
+          disabled={saving}
           className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           <Plus size={14} />

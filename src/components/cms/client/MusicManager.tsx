@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Trash2, Music, Plus, Upload, Link, Play, Pause, Radio } from "lucide-react";
+import { Trash2, Music, Plus, Play, Pause, Radio } from "lucide-react";
 import { getYouTubeId, loadYouTubeApi } from "@/lib/youtube";
 
 type YTPlayer = {
@@ -23,18 +23,14 @@ interface Props {
   initialMusics: MusicItem[];
 }
 
-type InputMode = "upload" | "url";
-
 const inputClass =
   "w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300";
 const labelClass = "block text-xs font-medium text-stone-600 mb-1";
 
 export function MusicManager({ clientId, initialMusics }: Props) {
   const [musics, setMusics] = useState<MusicItem[]>(initialMusics);
-  const [mode, setMode] = useState<InputMode>("upload");
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -42,12 +38,11 @@ export function MusicManager({ clientId, initialMusics }: Props) {
 
   // Single audio element — src switched on demand
   const audioRef = useRef<HTMLAudioElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   // Hidden YouTube IFrame player for previewing YouTube links
   const ytHostRef = useRef<HTMLDivElement>(null);
   const ytPlayerRef = useRef<YTPlayer | null>(null);
 
-  const urlIsYouTube = mode === "url" && !!getYouTubeId(url);
+  const urlIsYouTube = !!getYouTubeId(url);
 
   function stopYouTube() {
     try {
@@ -100,23 +95,6 @@ export function MusicManager({ clientId, initialMusics }: Props) {
     }
   }
 
-  async function uploadAndAdd(file: File) {
-    if (!title.trim()) { setError("Isi judul lagu terlebih dahulu"); return; }
-    setUploading(true);
-    setError("");
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("clientId", clientId);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Upload gagal"); return; }
-      await addMusic(title.trim(), data.url);
-    } finally {
-      setUploading(false);
-    }
-  }
-
   async function addMusic(songTitle: string, songUrl: string) {
     setSaving(true);
     setError("");
@@ -134,13 +112,6 @@ export function MusicManager({ clientId, initialMusics }: Props) {
     } finally {
       setSaving(false);
     }
-  }
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    uploadAndAdd(file);
   }
 
   function handleAddUrl() {
@@ -236,21 +207,6 @@ export function MusicManager({ clientId, initialMusics }: Props) {
           Hanya satu lagu yang aktif sekaligus. Menambah lagu baru otomatis menjadikannya aktif.
         </p>
 
-        <div className="flex gap-2 mb-4">
-          <button onClick={() => setMode("upload")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              mode === "upload" ? "bg-blue-600 text-white" : "border border-stone-200 text-stone-600 hover:bg-stone-50"
-            }`}>
-            <Upload size={12} /> Upload File
-          </button>
-          <button onClick={() => setMode("url")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              mode === "url" ? "bg-blue-600 text-white" : "border border-stone-200 text-stone-600 hover:bg-stone-50"
-            }`}>
-            <Link size={12} /> Dari URL
-          </button>
-        </div>
-
         <div className="space-y-3">
           <div>
             <label className={labelClass}>Judul Lagu</label>
@@ -258,48 +214,29 @@ export function MusicManager({ clientId, initialMusics }: Props) {
               value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
           </div>
 
-          {mode === "upload" ? (
-            <>
-              <input ref={fileInputRef} type="file"
-                accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/webm,audio/aac,audio/mp4"
-                onChange={handleFileChange} className="hidden" />
-              <button type="button" onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || saving}
-                className="w-full border-2 border-dashed border-stone-200 rounded-xl p-5 text-center hover:border-stone-400 hover:bg-stone-50 transition-colors disabled:opacity-50">
-                <Upload size={20} className="text-stone-300 mx-auto mb-1.5" />
-                <p className="text-sm text-stone-500 font-medium">
-                  {uploading ? "Mengupload..." : "Klik untuk pilih file audio"}
-                </p>
-                <p className="text-xs text-stone-400 mt-0.5">MP3, OGG, WAV, AAC — maks. 30MB</p>
-              </button>
-            </>
-          ) : (
-            <div>
-              <label className={labelClass}>URL Lagu / Link YouTube</label>
-              <input type="text" placeholder="Tempel link YouTube atau URL file audio (.mp3)"
-                value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
-              {urlIsYouTube ? (
-                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                  <Play size={11} /> Link YouTube terdeteksi — bisa langsung dipakai. Klik tombol play di daftar untuk tes.
-                </p>
-              ) : (
-                <p className="text-xs text-stone-400 mt-1">
-                  Tempel link YouTube (mis. https://youtu.be/...) atau URL langsung ke file audio (MP3, OGG, WAV).
-                </p>
-              )}
-            </div>
-          )}
+          <div>
+            <label className={labelClass}>URL Lagu / Link YouTube</label>
+            <input type="text" placeholder="Tempel link YouTube atau URL file audio (.mp3)"
+              value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
+            {urlIsYouTube ? (
+              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                <Play size={11} /> Link YouTube terdeteksi — bisa langsung dipakai. Klik tombol play di daftar untuk tes.
+              </p>
+            ) : (
+              <p className="text-xs text-stone-400 mt-1">
+                Tempel link YouTube (mis. https://youtu.be/...) atau URL langsung ke file audio (MP3, OGG, WAV).
+              </p>
+            )}
+          </div>
         </div>
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
 
-        {mode === "url" && (
-          <button onClick={handleAddUrl} disabled={saving}
-            className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
-            <Plus size={14} />
-            {saving ? "Menyimpan..." : "Tambah Lagu"}
-          </button>
-        )}
+        <button onClick={handleAddUrl} disabled={saving}
+          className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          <Plus size={14} />
+          {saving ? "Menyimpan..." : "Tambah Lagu"}
+        </button>
       </div>
 
       {/* Music list */}

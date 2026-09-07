@@ -4,13 +4,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { RichTextEditor } from "./RichTextEditor";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   weddingProfileSchema,
   type WeddingProfileInput,
 } from "@/modules/wedding/wedding.schema";
 import type { WeddingProfile } from "@/types/prisma.types";
-import { useImageUpload } from "@/hooks/useImageUpload";
 
 interface Props {
   clientId: string;
@@ -131,7 +130,6 @@ export function ProfileForm({ clientId, initialData }: Props) {
         </Field>
         <PhotoField
           label="Foto Mempelai Pria"
-          clientId={clientId}
           value={watch("groomPhoto") ?? ""}
           onChange={(v) => setValue("groomPhoto", v, { shouldDirty: true })}
         />
@@ -169,7 +167,6 @@ export function ProfileForm({ clientId, initialData }: Props) {
         </Field>
         <PhotoField
           label="Foto Mempelai Wanita"
-          clientId={clientId}
           value={watch("bridePhoto") ?? ""}
           onChange={(v) => setValue("bridePhoto", v, { shouldDirty: true })}
         />
@@ -394,26 +391,13 @@ function Toggle({
 
 function PhotoField({
   label,
-  clientId,
   value,
   onChange,
 }: {
   label: string;
-  clientId: string;
   value: string;
   onChange: (url: string) => void;
 }) {
-  const [uploadError, setUploadError] = useState("");
-
-  const { uploading, openPicker, inputProps } = useImageUpload({
-    clientId,
-    onSuccess: (url) => {
-      onChange(url);
-      setUploadError("");
-    },
-    onError: (msg) => setUploadError(msg),
-  });
-
   const displayUrl = value || "";
 
   return (
@@ -424,20 +408,9 @@ function PhotoField({
           type="url"
           value={displayUrl}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="https://... atau link Google Drive"
+          placeholder="https://... (bukan link Google Drive)"
           className={inputClass + " flex-1"}
         />
-        <input {...inputProps} />
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={uploading}
-          title="Upload dari laptop"
-          className="shrink-0 flex items-center gap-1.5 border border-stone-200 text-stone-600 text-xs px-3 py-2 rounded-lg hover:bg-stone-50 disabled:opacity-50 transition-colors"
-        >
-          <Upload size={13} />
-          {uploading ? "..." : "Upload"}
-        </button>
         {displayUrl && (
           <button
             type="button"
@@ -449,7 +422,13 @@ function PhotoField({
           </button>
         )}
       </div>
-      {uploadError && <p className="text-red-500 text-xs mt-1">{uploadError}</p>}
+      <p className="text-xs text-stone-400 mt-1">
+        Link Google Drive belum bisa dipakai. Upload dulu fotonya ke{" "}
+        <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">postimages.org</a>
+        {" "}atau{" "}
+        <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">imgbb.com</a>
+        {" "}(gratis, tanpa akun), lalu tempel link fotonya di sini.
+      </p>
       {displayUrl && (
         <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
           {/* eslint-disable-next-line @next/next/no-img-element */}

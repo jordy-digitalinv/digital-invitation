@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Trash2, Plus, Image, Upload, Link, GripVertical } from "lucide-react";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { Trash2, Plus, Image, GripVertical } from "lucide-react";
 
 type GalleryType = "HERO" | "COVER" | "BACKGROUND" | "PREWEDDING" | "GALLERY";
-type InputMode = "upload" | "url";
 
 interface GalleryItem {
   id: string;
@@ -33,18 +31,11 @@ const labelClass = "block text-xs font-medium text-stone-600 mb-1";
 
 export function GalleryManager({ clientId, initialGalleries }: Props) {
   const [galleries, setGalleries] = useState<GalleryItem[]>(initialGalleries);
-  const [mode, setMode] = useState<InputMode>("upload");
   const [url, setUrl] = useState("");
   const [type, setType] = useState<GalleryType>("GALLERY");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const dragId = useRef<string | null>(null);
-
-  const { uploading, openPicker, inputProps } = useImageUpload({
-    clientId,
-    onSuccess: (uploadedUrl) => addToGallery(uploadedUrl),
-    onError: (msg) => setError(msg),
-  });
 
   async function addToGallery(photoUrl: string) {
     setSaving(true);
@@ -120,27 +111,12 @@ export function GalleryManager({ clientId, initialGalleries }: Props) {
     items: galleries.filter((g) => g.type === t),
   }));
 
-  const isBusy = saving || uploading;
+  const isBusy = saving;
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-stone-200 p-6">
         <h2 className="font-semibold text-stone-800 mb-4">Tambah Foto</h2>
-
-        <div className="flex gap-2 mb-4">
-          <button onClick={() => setMode("upload")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              mode === "upload" ? "bg-blue-600 text-white" : "border border-stone-200 text-stone-600 hover:bg-stone-50"
-            }`}>
-            <Upload size={12} /> Upload dari Laptop
-          </button>
-          <button onClick={() => setMode("url")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              mode === "url" ? "bg-blue-600 text-white" : "border border-stone-200 text-stone-600 hover:bg-stone-50"
-            }`}>
-            <Link size={12} /> Dari URL
-          </button>
-        </div>
 
         <div className="mb-4 w-48">
           <label className={labelClass}>Tipe Foto</label>
@@ -154,34 +130,27 @@ export function GalleryManager({ clientId, initialGalleries }: Props) {
           </p>
         </div>
 
-        {mode === "upload" ? (
-          <div>
-            <input {...inputProps} />
-            <button onClick={openPicker} disabled={isBusy}
-              className="w-full border-2 border-dashed border-stone-200 rounded-xl p-8 text-center hover:border-stone-400 hover:bg-stone-50 transition-colors disabled:opacity-50">
-              <Upload size={24} className="text-stone-300 mx-auto mb-2" />
-              <p className="text-sm text-stone-500 font-medium">
-                {uploading ? "Mengupload..." : "Klik untuk pilih foto"}
-              </p>
-              <p className="text-xs text-stone-400 mt-1">JPG, PNG, WebP, GIF — maks. 15MB</p>
+        <div>
+          <label className={labelClass}>URL Foto</label>
+          <div className="flex gap-2">
+            <input type="url" placeholder="https://... (bukan link Google Drive)" value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
+              className={inputClass} />
+            <button onClick={handleAddUrl} disabled={isBusy || !url.trim()}
+              className="shrink-0 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              <Plus size={14} />
+              {saving ? "..." : "Tambah"}
             </button>
           </div>
-        ) : (
-          <div>
-            <label className={labelClass}>URL Foto</label>
-            <div className="flex gap-2">
-              <input type="url" placeholder="https://..." value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddUrl()}
-                className={inputClass} />
-              <button onClick={handleAddUrl} disabled={isBusy || !url.trim()}
-                className="shrink-0 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                <Plus size={14} />
-                {saving ? "..." : "Tambah"}
-              </button>
-            </div>
-          </div>
-        )}
+          <p className="text-xs text-stone-400 mt-1">
+            Link Google Drive belum bisa dipakai. Upload dulu fotonya ke{" "}
+            <a href="https://postimages.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">postimages.org</a>
+            {" "}atau{" "}
+            <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-stone-600">imgbb.com</a>
+            {" "}(gratis, tanpa akun), lalu tempel link fotonya di sini.
+          </p>
+        </div>
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
       </div>
@@ -230,7 +199,7 @@ export function GalleryManager({ clientId, initialGalleries }: Props) {
         <div className="bg-white rounded-2xl border border-stone-200 p-10 text-center">
           <Image size={32} className="text-stone-300 mx-auto mb-3" />
           <p className="text-stone-500 text-sm font-medium">Belum ada foto</p>
-          <p className="text-stone-400 text-xs mt-1">Upload foto dari laptop atau tambahkan dari URL.</p>
+          <p className="text-stone-400 text-xs mt-1">Tambahkan foto dari URL.</p>
         </div>
       )}
     </div>

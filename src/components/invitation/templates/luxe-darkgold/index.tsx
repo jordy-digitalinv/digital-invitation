@@ -140,7 +140,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
       {bgImage && (
         <div className="fixed inset-0 -z-10" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bgImage} alt="" className="w-full h-full object-cover opacity-30" />
+          <img src={bgImage} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: `${bg}99` }} />
         </div>
       )}

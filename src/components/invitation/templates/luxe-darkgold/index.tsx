@@ -129,7 +129,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
 
   return (
     <div style={{
-      background: bg, position: "relative",
+      background: bg, isolation: "isolate",
       color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
     }}>
       <style>{`

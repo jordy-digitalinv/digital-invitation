@@ -129,17 +129,21 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
 
   return (
     <div style={{
-      background: bgImage ? undefined : bg,
-      backgroundImage: bgImage ? `linear-gradient(${bg}99, ${bg}99), url('${bgImage}')` : undefined,
-      backgroundSize: bgImage ? "cover" : undefined,
-      backgroundPosition: bgImage ? "center" : undefined,
-      backgroundRepeat: bgImage ? "no-repeat" : undefined,
+      background: bg,
       color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
     }}>
       <style>{`
         .lx-divider { display:flex; align-items:center; gap:.8rem; justify-content:center; }
         .lx-divider::before,.lx-divider::after { content:""; height:1px; width:52px; background:${gold}55; }
       `}</style>
+
+      {bgImage && (
+        <div className="fixed inset-0 -z-10" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bgImage} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ background: `${bg}99` }} />
+        </div>
+      )}
 
       {music && (
         <MusicPlayer url={music.url} title={music.title} registerPlay={(fn) => { playRef.current = fn; }} />
@@ -157,7 +161,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
           <p className="relative z-10 text-[11px]" style={{ letterSpacing: "0.5em", color: gold, fontFamily: `'${fontH}', serif` }}>
             {invLabel}
           </p>
-          <h1 className="relative z-10 mt-6 leading-tight" style={{ fontFamily: `'${fontH}', serif`, fontSize: "clamp(2rem,8vw,3.2rem)", fontWeight: 400, letterSpacing: "0.08em" }}>
+          <h1 className="relative z-10 mt-6 leading-tight" style={{ fontFamily: `'${fontH}', serif`, fontSize: "clamp(2rem,8vw,3.2rem)", fontWeight: 700, letterSpacing: "0.08em" }}>
             {groomNick}<br /><span style={{ color: gold }}>&</span><br />{brideNick}
           </h1>
           <div className="lx-divider relative z-10 mt-6"><span style={{ color: gold, fontSize: ".7rem" }}>✦</span></div>
@@ -182,7 +186,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
             style={{ minHeight: "95dvh", padding: "4rem 1.5rem" }}>
             <div className="relative z-10">
               <p style={{ fontSize: ".65rem", letterSpacing: "0.5em", color: gold, fontFamily: `'${fontH}', serif` }}>{invLabel}</p>
-              <h1 className="mt-8 leading-snug" style={{ fontFamily: `'${fontH}', serif`, fontWeight: 400, fontSize: "clamp(2.4rem,10vw,4rem)", letterSpacing: "0.06em" }}>
+              <h1 className="mt-8 leading-snug" style={{ fontFamily: `'${fontH}', serif`, fontWeight: 700, fontSize: "clamp(2.4rem,10vw,4rem)", letterSpacing: "0.06em" }}>
                 {groomNick}
                 <span className="block my-2" style={{ color: gold, fontSize: ".6em" }}>✦ &amp; ✦</span>
                 {brideNick}

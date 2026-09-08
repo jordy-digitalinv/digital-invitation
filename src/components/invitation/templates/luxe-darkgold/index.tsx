@@ -133,7 +133,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
       backgroundImage: bgImage ? `linear-gradient(${bg}99, ${bg}99), url('${bgImage}')` : undefined,
       backgroundSize: bgImage ? "cover" : undefined,
       backgroundPosition: bgImage ? "center" : undefined,
-      backgroundAttachment: bgImage ? "fixed" : undefined,
+      backgroundRepeat: bgImage ? "no-repeat" : undefined,
       color: text, fontFamily: `'${fontB}', sans-serif`, minHeight: "100dvh",
     }}>
       <style>{`
@@ -206,7 +206,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
             <section className="py-16 px-6" style={{ borderBottom: `1px solid ${gold}22` }}>
               <SectionHead gold={gold} fontH={fontH} label="MEMPELAI">Kami yang Berbahagia</SectionHead>
               {profile.openingQuote && (
-                <p className="max-w-md mx-auto text-center italic text-sm leading-relaxed -mt-4 mb-12" style={{ color: DEF.muted }}>
+                <p className="max-w-md mx-auto text-center italic text-sm leading-relaxed -mt-4 mb-12" style={{ color: text }}>
                   “{profile.openingQuote}”
                   {profile.openingQuoteBy && <span className="block not-italic mt-2 text-xs">— {profile.openingQuoteBy}</span>}
                 </p>

@@ -140,7 +140,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
       {bgImage && (
         <div className="fixed inset-0 -z-10" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bgImage} alt="" className="w-full h-full object-cover" />
+          <img src={bgImage} alt="" className="w-full h-full object-cover opacity-30" />
           <div className="absolute inset-0" style={{ background: `${bg}99` }} />
         </div>
       )}
@@ -161,7 +161,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
           <p className="relative z-10 text-[11px]" style={{ letterSpacing: "0.5em", color: gold, fontFamily: `'${fontH}', serif` }}>
             {invLabel}
           </p>
-          <h1 className="relative z-10 mt-6 leading-tight" style={{ fontFamily: `'${fontH}', serif`, fontSize: "clamp(2rem,8vw,3.2rem)", fontWeight: 700, letterSpacing: "0.08em" }}>
+          <h1 className="relative z-10 mt-6 leading-tight" style={{ fontFamily: `'${fontH}', serif`, fontSize: "2.5rem", fontWeight: 700, letterSpacing: "0.08em" }}>
             {groomNick}<br /><span style={{ color: gold }}>&</span><br />{brideNick}
           </h1>
           <div className="lx-divider relative z-10 mt-6"><span style={{ color: gold, fontSize: ".7rem" }}>✦</span></div>
@@ -186,7 +186,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
             style={{ minHeight: "95dvh", padding: "4rem 1.5rem" }}>
             <div className="relative z-10">
               <p style={{ fontSize: ".65rem", letterSpacing: "0.5em", color: gold, fontFamily: `'${fontH}', serif` }}>{invLabel}</p>
-              <h1 className="mt-8 leading-snug" style={{ fontFamily: `'${fontH}', serif`, fontWeight: 700, fontSize: "clamp(2.4rem,10vw,4rem)", letterSpacing: "0.06em" }}>
+              <h1 className="mt-8 leading-snug" style={{ fontFamily: `'${fontH}', serif`, fontWeight: 700, fontSize: "2.5rem", letterSpacing: "0.06em" }}>
                 {groomNick}
                 <span className="block my-2" style={{ color: gold, fontSize: ".6em" }}>✦ &amp; ✦</span>
                 {brideNick}
@@ -227,7 +227,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
                       <img src={p.photo} alt={p.name} className="w-44 h-44 object-cover mx-auto mb-6"
                         style={{ borderRadius: "50%", border: `2px solid ${gold}`, padding: "4px", boxShadow: `0 0 24px ${gold}33` }} />
                     )}
-                    <h3 style={{ fontFamily: `'${fontH}', serif`, fontSize: "1.5rem", letterSpacing: "0.05em" }}>{p.nick || p.name}</h3>
+                    <h3 style={{ fontFamily: `'${fontH}', serif`, fontSize: "2.5rem", letterSpacing: "0.05em" }}>{p.nick || p.name}</h3>
                     <p className="text-xs mt-1.5" style={{ color: DEF.muted }}>{p.name}</p>
                     <div className="lx-divider my-3"><span style={{ color: gold, fontSize: ".6rem" }}>✦</span></div>
                     {p.parents && <p className="text-xs leading-relaxed" style={{ color: DEF.muted }}>{p.parents}</p>}
@@ -341,7 +341,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
           <footer className="py-20 px-6 text-center">
             <div className="lx-divider mb-6"><span style={{ color: gold, fontSize: ".7rem" }}>✦</span></div>
             <p className="text-[10px]" style={{ letterSpacing: "0.45em", color: DEF.muted }}>WITH LOVE</p>
-            <p className="mt-4 text-2xl" style={{ fontFamily: `'${fontH}', serif`, color: gold, letterSpacing: "0.08em" }}>
+            <p className="mt-4" style={{ fontFamily: `'${fontH}', serif`, color: gold, fontSize: "2.5rem", letterSpacing: "0.08em" }}>
               {groomNick} &amp; {brideNick}
             </p>
             <p className="mt-6 text-xs max-w-xs mx-auto" style={{ color: DEF.muted }}>

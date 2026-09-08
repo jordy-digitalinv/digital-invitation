@@ -345,7 +345,7 @@ export default function LuxeDarkGoldTemplate({ guest, client, token }: TemplateP
               {groomNick} &amp; {brideNick}
             </p>
             <p className="mt-6 text-xs max-w-xs mx-auto" style={{ color: DEF.muted }}>
-              Merupakan kehormatan dan kebahagiaan kami apabila Bapak/Ibu/Saudara/i berkenan hadir.
+              Powered by Digital Invitation Platform x ExeTech.id
             </p>
           </footer>
         </motion.div>
